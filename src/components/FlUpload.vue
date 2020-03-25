@@ -11,9 +11,16 @@ const axios = require('axios');
 
 export default {
   name: 'HelloWorld',
+    props: {
+        debug : Number,
+        url : String
+    },
+    
     data(){
         return {
-            url: 'http://localhost/~staskialt/cvtfltlg/cvtfltlg.cgi?debug=1',
+            //mybase_url : process.env.NODE_ENV === 'development' ? //'localhost/~staskialt/cvtfltlg/cvtfltlg.cgi' :   //'venus-flytrap.de/fly/flight-log/cvtfltlg.cgi',
+            //url : 'http://' + this.mybase_url,
+            //surl : 'https://' + this.base_url,
             info : null,
             file: ''
         }
@@ -21,8 +28,13 @@ export default {
     methods: {
         submitFile(){
             let formData = new FormData();
+            let url = this.url + '/cvtfltlg.cgi'
+            if (this.debug == 1){
+                url = url + '?debug=1'
+            }
+
             formData.append('file', this.file);
-            axios.post( 'http://localhost/~staskialt/cvtfltlg/cvtfltlg.cgi?debug=1',
+            axios.post( url,
             formData,
             {
                 headers: {
@@ -31,6 +43,7 @@ export default {
             }
             ).then(response => {
                 this.info = response.data
+                // eslint-disable-next-line
                 console.log(this.info)
                 this.$emit('send-result', this.info)
             })

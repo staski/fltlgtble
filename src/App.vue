@@ -2,7 +2,7 @@
 <div classe="app">
 <div class="top-bar">
 <button @click="handleLogRead()" class="log-button">read</button>
-<fl-upload @send-result="fetchNewFlights($event)">
+<fl-upload v-bind:debug="this.debug_mode" v-bind:url="this.base_url" @send-result="fetchNewFlights($event)">
 </fl-upload>
 </div>
 <div class="pure-data-container">
@@ -20,7 +20,7 @@
         <th></th>
     </thead>
     <tbody>
-      <tr v-for="(lline,index) in allflights" :class="{editing: edits[index] == true}" v-cloak>
+      <tr v-for="(lline,index) in allflights" :key="lline.takeoffTime" :class="{editing: edits[index] == true}" v-cloak>
         <td>
             {{showDate(lline.takeoffTime)}}
         </td>
@@ -80,6 +80,14 @@ import FlUpload from './components/FlUpload.vue';
 Vue.component('fl-upload', FlUpload);
 
 export default {
+    created: function () {
+        this.addurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=add' + '&debug=' + this.debug_mode,
+        this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
+        this.saddurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=add' + '&debug=' + this.debug_mode,
+        this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
+        this.base_url = 'http://' + this.base_url
+    },
+    
     data () {
         return {
             selectedPilot : 'CP',
@@ -90,11 +98,17 @@ export default {
                 ],
             allflights : [],
             edits : [],
-            addurl : 'http://localhost/~staskialt/cvtfltlg/mngfltlg.cgi?debug=0&action=add',
-            readurl : 'http://localhost/~staskialt/cvtfltlg/mngfltlg.cgi?debug=0&action=read'
+            debug_mode : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
+            base_url : process.env.VUE_APP_BASE_URL,
+            addurl : '',
+            readurl : '',
+            saddurl : '',
+            sreadurl : ''
         }
     },
+    
     methods : {
+
         handleLogRead() {
             this.readFlightLog()
         },
@@ -103,20 +117,25 @@ export default {
             var a = this.allflights
             var e = this.edits
             var p = this.pilots
+            // eslint-disable-next-line
             console.log(p[0].value)
+            // eslint-disable-next-line
             console.log(p[0].name)
             myInfo.forEach(function(item){
+                // eslint-disable-next-line
                 console.log(item.pilot)
                 item.pilot = item.pilot ? item.pilot : p[0].value
+                // eslint-disable-next-line
                 console.log(item.pilot)
                 a.splice(0,0,item);
                 e.splice(0,0,true);
             });
+            // eslint-disable-next-line
             console.log(this.allflights)
         },
 
-        flightSaved (eventInfo){
-            },
+        //flightSaved (eventInfo){
+        //    },
         
         showDate : function (timer){
             var date = new Date(timer * 1000)
@@ -157,22 +176,25 @@ export default {
         },
         
         entrySave : function ( line, index ){
+            // eslint-disable-next-line
             console.log(index)
             this.submitEntry(line, index);
-            this.edits[index] = false;
         },
         
         readFlightLog : function () {
+            console.log(this.readurl)
             axios.get( this.readurl
                 ).then(response =>
                 {
                     this.allflights  = response.data.reverse()
                 }).catch(function(){
+                    // eslint-disable-next-line
                     console.log('READ ERROR!');
                     });
         },
             
         submitEntry : function (data, index){
+            // eslint-disable-next-line
             console.log(data)
             axios.post( this.addurl, data, {
                 headers: {
@@ -180,8 +202,9 @@ export default {
                 }
                 
             }).then(response => {
+                // eslint-disable-next-line
                 console.log(response.data);
-                this.edits[index] = false;
+                Vue.set(this.edits, index, false)
                 this.$emit('line-saved', data)
             })
             .catch(function(){

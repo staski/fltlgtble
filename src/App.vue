@@ -56,7 +56,7 @@
         
         <td>
             <div class="view">
-                <button>Edit</button>
+                <button @click="entryEdit(lline,index)">Edit</button>
             </div>
             <div class="edit">
                 <button @click="entrySave(lline, index)">Save</button>
@@ -86,6 +86,10 @@ export default {
         this.saddurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=add' + '&debug=' + this.debug_mode,
         this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
         this.base_url = 'http://' + this.base_url
+    },
+    
+    mounted: function () {
+        this.readFlightLog()
     },
     
     data () {
@@ -175,6 +179,12 @@ export default {
             return str_hours + ":" + str_minutes
         },
         
+        entryEdit : function ( line, index ){
+            // eslint-disable-next-line
+            console.log(index)
+            Vue.set(this.edits, index, true)
+        },
+
         entrySave : function ( line, index ){
             // eslint-disable-next-line
             console.log(index)
@@ -205,7 +215,6 @@ export default {
                 // eslint-disable-next-line
                 console.log(response.data);
                 Vue.set(this.edits, index, false)
-                this.$emit('line-saved', data)
             })
             .catch(function(){
                 // eslint-disable-next-line

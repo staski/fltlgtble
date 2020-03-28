@@ -81,9 +81,9 @@ Vue.component('fl-upload', FlUpload);
 
 export default {
     created: function () {
-        this.addurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=add' + '&debug=' + this.debug_mode,
+        this.addurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=update' + '&debug=' + this.debug_mode,
         this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
-        this.saddurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=add' + '&debug=' + this.debug_mode,
+        this.saddurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=update' + '&debug=' + this.debug_mode,
         this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
         this.base_url = 'http://' + this.base_url
     },

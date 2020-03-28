@@ -18,9 +18,6 @@ export default {
     
     data(){
         return {
-            //mybase_url : process.env.NODE_ENV === 'development' ? //'localhost/~staskialt/cvtfltlg/cvtfltlg.cgi' :   //'venus-flytrap.de/fly/flight-log/cvtfltlg.cgi',
-            //url : 'http://' + this.mybase_url,
-            //surl : 'https://' + this.base_url,
             info : null,
             file: ''
         }
@@ -28,7 +25,7 @@ export default {
     methods: {
         submitFile(){
             let formData = new FormData();
-            let url = this.url + '/cvtfltlg.cgi'
+            let url = this.url + '/mngfltlg.cgi?action=create'
             if (this.debug == 1){
                 url = url + '?debug=1'
             }

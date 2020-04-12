@@ -63,17 +63,15 @@ export default {
 
 .upload-container {
     position: relative;
+    display: inline-block;
     overflow: hidden;
     width: 120px;
-    display: inline-block;
-    margin: auto;
+    margin: 10px;
 }
 
 .upload-button {
     width: 120px;
-    border: 2px solid gray;
-    color: gray;
-    background-color: white;
+    background-color: lightgray;
     padding: 8px 20px;
     border-radius: 8px;
     font-size: 20px;

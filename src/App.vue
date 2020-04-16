@@ -17,9 +17,7 @@ DEEBUG Flight Log
         <th>Takeoff</th>
         <th>Landing</th>
         <th>Duration</th>
-        <th>Landing Count</th>
-        <th></th>
-        <th></th>
+        <th>Landings</th>
         <th></th>
         <th></th>
     </thead>
@@ -54,7 +52,7 @@ DEEBUG Flight Log
                 {{lline.landingCount}}
             </div>
             <div class="edit">
-                <input type="Number" v-bind:value="lline.landingCount" v-on:input="lline.landingCount=$event.target.value">
+                <input type="Number" v-bind:value="lline.landingCount" v-on:input="lline.landingCount=$event.target.value" min="1" max="99">
             </div>
         </td>
         
@@ -67,9 +65,12 @@ DEEBUG Flight Log
             </div>
         </td>
         <td><div class="edit">
-            <button @click="entryDelete(lline,index)">Delete</button></div></td>
-        <td></td>
-        <td></td>
+            <button @click="entryDelete(lline,index)">Delete</button></div>
+            <div class="view">
+                <button class="test">None</button>
+            </div>
+        </td>
+        
 
       </tr>
     </tbody>
@@ -166,9 +167,9 @@ export default {
         
         showTime : function (timer){
                 var date = new Date(timer * 1000)
-                var hours = date.getHours()
+                var hours = date.getUTCHours()
                 hours = (hours >= 10 ? hours : "0" + hours)
-                var minutes = date.getMinutes ()
+                var minutes = date.getUTCMinutes ()
                 minutes = (minutes >= 10 ? minutes : "0" + minutes)
                 return hours + ":" + minutes
         },
@@ -233,7 +234,7 @@ export default {
                 // eslint-disable-next-line
                 console.log(response.data);
                 Vue.set(this.edits, index, false)
-                this.readFlightLog ()
+                //this.readFlightLog ()
             })
             .catch(function(){
                 // eslint-disable-next-line
@@ -267,6 +268,9 @@ export default {
 
 <style>
 
+.test {
+    visibility: hidden;
+}
 .top-bar {
     display: flex;
     align-items: baseline;
@@ -287,12 +291,16 @@ export default {
     margin: 10px;
     cursor: pointer;
 }
-
-table {
-  border-collapse: collapse;
-  width: 100%;
+.select {
+    padding : 0px;
 }
+table {
+    table-layout:fixed;
+    border-collapse: collapse;
+}
+
 th {
+    border : 1px solid;
     text-align: left;
     padding: 8px;
     font-family : Arial;
@@ -300,6 +308,7 @@ th {
 }
 
 td {
+    border : 1px solid;
     text-align: left;
     padding: 8px;
     font-family : Arial;

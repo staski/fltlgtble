@@ -67,7 +67,7 @@ DEEBUG Flight Log
         <td><div class="edit">
             <button @click="entryDelete(lline,index)">Delete</button></div>
             <div class="view">
-                <button class="test">None</button>
+                <button class="hidden">None</button>
             </div>
         </td>
         
@@ -268,19 +268,22 @@ export default {
 
 <style>
 
-.test {
-    visibility: hidden;
+.hidden {
+visibility : hidden;
 }
+
 .top-bar {
     display: flex;
     align-items: baseline;
     margin: auto;
     background-color: IndianRed;
     width: 90%;
+    min-width: 970px;
     font-family : Arial;
     font-size: 20px;
     font-weight: bold;
 }
+
 .log-button {
     width: 120px;
     background-color: lightgrey;
@@ -291,12 +294,13 @@ export default {
     margin: 10px;
     cursor: pointer;
 }
-.select {
-    padding : 0px;
-}
-table {
-    table-layout:fixed;
-    border-collapse: collapse;
+
+.flight-table {
+    table-layout: fixed;
+    border-collapse : collapse;
+    border : 1px solid ;
+    width : 90%;
+    margin : auto;
 }
 
 th {
@@ -305,6 +309,7 @@ th {
     padding: 8px;
     font-family : Arial;
     background-color : IndianRed;
+    width: 80px;
 }
 
 td {
@@ -312,6 +317,7 @@ td {
     text-align: left;
     padding: 8px;
     font-family : Arial;
+    overflow : hidden;
 }
 
 tr:nth-child(even) {background-color: IndianRed;}
@@ -329,15 +335,8 @@ tr:nth-child(even) {background-color: IndianRed;}
   display: none;
 }
 
-
 .data-container {
 margin : auto;
 }
 
-.upload-container {
-}
-.flight-table {
-width : 90%;
-margin : auto;
-}
 </style>

@@ -103,7 +103,6 @@ export default {
     
     data () {
         return {
-            selectedPilot : 'CP',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
                 { name: "Markus", id: 1, value: 'Markus', mysel: true },

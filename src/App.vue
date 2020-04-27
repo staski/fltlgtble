@@ -86,13 +86,15 @@ Vue.component('fl-upload', FlUpload);
 
 export default {
     created: function () {
-        this.updateurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=update' + '&debug=' + this.debug_mode,
-        this.deleteurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=delete' + '&debug=' + this.debug_mode,
-        this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
-
-        this.supdateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=update' + '&debug=' + this.debug_mode,
-        this.sdeleteurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=delete' + '&debug=' + this.debug_mode,
-        this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read' + '&debug=' + this.debug_mode,
+        // HTTP
+        this.updateurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=update',
+        this.deleteurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=delete',
+        this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read',
+        
+        //HTTPS
+        this.supdateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=update',
+        this.sdeleteurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=delete',
+        this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read',
         
         this.base_url = 'https://' + this.base_url
     },
@@ -135,10 +137,6 @@ export default {
             });
             var e = this.edits
             var p = this.pilots
-            // eslint-disable-next-line
-            console.log(p[0].value)
-            // eslint-disable-next-line
-            console.log(p[0].name)
             myInfo.forEach(function(item){
                 item.pilot = item.pilot ? item.pilot : p[0].value
                 if (mySet.has(item.id)){
@@ -150,9 +148,6 @@ export default {
             });
         },
 
-        //flightSaved (eventInfo){
-        //    },
-        
         showDate : function (timer){
             var date = new Date(timer * 1000)
             var day  = date.getDate ()
@@ -161,7 +156,6 @@ export default {
             month = (month >= 10 ? month : "0" + month)
             var year = date.getFullYear ()
             return day + "." + month + "." + year
-            
         },
         
         showTime : function (timer){
@@ -192,25 +186,22 @@ export default {
         },
         
         entryEdit : function ( line, index ){
-            // eslint-disable-next-line
-            console.log(index)
             Vue.set(this.edits, index, true)
         },
 
         entrySave : function ( line, index ){
-            // eslint-disable-next-line
-            console.log(index)
             this.submitEntry(line, index);
         },
         
         entryDelete : function ( line, index ){
-            // eslint-disable-next-line
-            console.log(index)
             this.deleteEntry(line, index);
         },
 
         readFlightLog : function () {
-            console.log(this.readurl)
+            if (this.debug == 1){
+                this.sreadurl = this.sreadurl + '&debug=1'
+            }
+            
             axios.get( this.sreadurl
                 ).then(response =>
                 {
@@ -222,18 +213,17 @@ export default {
         },
             
         submitEntry : function (data, index){
-            // eslint-disable-next-line
-            console.log(data)
+            if (this.debug == 1){
+                this.supdateturl = this.supdateurl + '&debug=1'
+            }
+
             axios.post( this.supdateurl, data, {
                 headers: {
                      'Content-Type': 'application/json',
                 }
                 
             }).then(response => {
-                // eslint-disable-next-line
-                console.log(response.data);
                 Vue.set(this.edits, index, false)
-                //this.readFlightLog ()
             })
             .catch(function(){
                 // eslint-disable-next-line
@@ -242,16 +232,16 @@ export default {
         },
         
         deleteEntry : function (data, index){
-            // eslint-disable-next-line
-            console.log(data)
+            if (this.debug == 1){
+                this.sdeleturl = this.sdeleteurl + '&debug=1'
+            }
+            
             axios.post( this.sdeleteurl, data, {
             headers: {
                 'Content-Type': 'application/json',
             }
         
         }).then(response => {
-            // eslint-disable-next-line
-            console.log(response.data);
             Vue.set(this.edits, index, false)
             this.readFlightLog ()
         })

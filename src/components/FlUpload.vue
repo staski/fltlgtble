@@ -10,7 +10,7 @@
 const axios = require('axios');
 
 export default {
-  name: 'HelloWorld',
+  name: 'Flight-Log Upload',
     props: {
         debug : Number,
         url : String

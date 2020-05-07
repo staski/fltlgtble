@@ -6,7 +6,7 @@
 </div>
 <fl-upload v-bind:debug="this.debug_mode" v-bind:url="this.base_url" @send-result="fetchNewFlights($event)">
 </fl-upload>
-DEEBUG Flight Log
+DEEBU Flight Log
 </div>
 <table class="flight-table">
     <thead>
@@ -35,6 +35,7 @@ DEEBUG Flight Log
                 <option> CP</option>
                 <option> Markus</option>
                 <option> Axel</option>
+                <option> TestPilot</option>
             </select>
           </div>
         </td>
@@ -101,14 +102,19 @@ export default {
     
     mounted: function () {
         this.readFlightLog()
+        if (localStorage.favpilot) {
+          this.favpilot = localStorage.favpilot;
+        }
     },
     
     data () {
         return {
+            favpilot : '',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
                 { name: "Markus", id: 1, value: 'Markus', mysel: true },
-                { name: "Axel", id: 2, value: 'Axel', mysel: false }
+                { name: "Axel", id: 2, value: 'Axel', mysel: false },
+                { name: "TestPilot", id: 3, value: 'TestPilot', mysel: false }
                 ],
             allflights : [],
             edits : [],
@@ -190,6 +196,7 @@ export default {
         },
 
         entrySave : function ( line, index ){
+            localStorage.favpilot = line.pilot;
             this.submitEntry(line, index);
         },
         

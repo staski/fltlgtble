@@ -59,20 +59,25 @@ DEEBU Flight Log
         
         <td>
             <div class="view">
-                <button @click="entryEdit(lline,index)">Edit</button>
+                          </div>
+            <div class="edit">
+                            </div>
+        </td>
+        <td>
+            <div class="view">
+                <button class="small-button" @click="entryEdit(lline,index)">Edit
+                </button>
+                <button class="hidden">None
+                </button>
             </div>
             <div class="edit">
-                <button @click="entrySave(lline, index)">Save</button>
-            </div>
-        </td>
-        <td><div class="edit">
-            <button @click="entryDelete(lline,index)">Delete</button></div>
-            <div class="view">
-                <button class="hidden">None</button>
-            </div>
-        </td>
-        
+                <button class="small-button" @click="entrySave(lline, index)">Save
+                </button>
+                <button class="small-button" @click="entryDelete(lline,index)">Delete
+                </button>
 
+            </div>
+        </td>
       </tr>
     </tbody>
 </table>
@@ -268,6 +273,10 @@ export default {
 visibility : hidden;
 }
 
+.small-button {
+    border: 1px solid;
+    background-color: white;
+}
 .top-bar {
     display: flex;
     align-items: baseline;

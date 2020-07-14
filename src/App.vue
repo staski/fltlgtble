@@ -1,13 +1,26 @@
 <template>
 <div class="app">
-<div class="top-bar">
-<div class="upload-container">
-<button @click="handleLogRead()" class="log-button">refresh</button>
+<div>
+<b-navbar toggleable="lg" variant="dark" type="dark">
+ <b-navbar-brand href="#">DEEBU Flight Log</b-navbar-brand>
+ <b-btn @click="handleLogRead()">Read</b-btn>
+ <b-navbar-nav class="ml-auto">
+       <b-nav-form>
+       <b-form-file
+         plain
+         v-model="file"
+         ref="file"
+         placeholder="chose gpx file..."
+         drop-placeholder="Drop file here..."
+         @change="handleFileUpload()">
+        </b-form-file>
+       </b-nav-form>
+ </b-navbar-nav>
+</b-navbar>
 </div>
-<fl-upload v-bind:debug="this.debug_mode" v-bind:url="this.base_url" @send-result="fetchNewFlights($event)">
-</fl-upload>
-DEEBU Flight Log
-</div>
+
+<flight-log-table :flight-segments="this.allflights"></flight-log-table>
+
 <table class="flight-table">
     <thead>
         <th>Date</th>
@@ -65,8 +78,8 @@ DEEBU Flight Log
         </td>
         <td>
             <div class="view">
-                <button class="small-button" @click="entryEdit(lline,index)">Edit
-                </button>
+                <b-btn size="sm" @click="entryEdit(lline,index)">Edit
+                </b-btn>
                 <button class="hidden">None
                 </button>
             </div>
@@ -87,17 +100,29 @@ DEEBU Flight Log
 <script>
 const axios = require('axios');
 import Vue from 'vue';
-import FlUpload from './components/FlUpload.vue';
-Vue.component('fl-upload', FlUpload);
+
+
+
+import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
+Vue.use(BootstrapVue)
+Vue.use(BootstrapVueIcons)
+
+import FlightLogTable from './components/FlightLogTable.vue';
+Vue.component('flight-log-table', FlightLogTable);
 
 export default {
     created: function () {
         // HTTP
+        this.createurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=create',
         this.updateurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=update',
         this.deleteurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=delete',
         this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read',
         
         //HTTPS
+        this.screateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=create',
         this.supdateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=update',
         this.sdeleteurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=delete',
         this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read',
@@ -114,6 +139,9 @@ export default {
     
     data () {
         return {
+            info : null,
+            file: null,
+            newflight : false,
             favpilot : '',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
@@ -169,11 +197,17 @@ export default {
             return day + "." + month + "." + year
         },
         
+        getDate : function (timer) {
+                return new Date(timer * 1000)
+        },
+        
         showTime : function (timer){
                 var date = new Date(timer * 1000)
                 var hours = date.getUTCHours()
                 hours = (hours >= 10 ? hours : "0" + hours)
                 var minutes = date.getUTCMinutes ()
+                var seconds = date.getUTCSeconds ()
+                minutes = seconds < 30 ? minutes : minutes + 1
                 minutes = (minutes >= 10 ? minutes : "0" + minutes)
                 return hours + ":" + minutes
         },
@@ -184,16 +218,7 @@ export default {
 
         showDuration : function (line) {
             var duration = line.landingTime - line.takeoffTime
-            var minutes = Math.floor(duration/60)
-            var hours = Math.floor(duration/3600)
-            minutes = minutes - 60 * hours
-            var str_hours, str_minutes
-            str_hours = Number(hours).toString()
-            str_minutes = Number(minutes).toString()
-            if (minutes < 10) {
-                str_minutes = "0" + str_minutes;
-            }
-            return str_hours + ":" + str_minutes
+            return this.showTime(duration)
         },
         
         entryEdit : function ( line, index ){
@@ -218,6 +243,7 @@ export default {
                 ).then(response =>
                 {
                     this.allflights  = response.data.reverse()
+                    //console.log(this.allflights)
                 }).catch(function(){
                     // eslint-disable-next-line
                     console.log('READ ERROR!');
@@ -239,7 +265,7 @@ export default {
             })
             .catch(function(){
                 // eslint-disable-next-line
-                console.log('FAILURE!!');
+                console.log('FAILURE SAVE!!');
             });
         },
         
@@ -259,9 +285,41 @@ export default {
         })
         .catch(function(){
             // eslint-disable-next-line
-            console.log('FAILURE!!');
+            console.log('FAILURE DELETE!!');
         });
+        },
+        
+        submitFile(){
+            let formData = new FormData();
+            let url = this.screateurl;
+            if (this.debug == 1){
+                url = url + '?debug=1'
+            }
+
+            formData.append('file', this.file);
+            axios.post( url,
+            formData,
+            {
+                headers: {
+                'Content-Type': 'multipart/form-data',
+                }
+            }
+            ).then(response => {
+                this.info = response.data
+                // eslint-disable-next-line
+                console.log(this.info)
+                this.fetchNewFlights(this.info)
+                this.newflight=true
+            })
+            .catch( error => {
+                console.log('FAILURE SUBMIT!!');
+            });
+        },
+        handleFileUpload(){
+            this.file = this.$refs.file.$refs.input.files[0]
+            this.submitFile()
         }
+
     }
 }
 
@@ -277,17 +335,6 @@ visibility : hidden;
     border: 1px solid;
     background-color: white;
 }
-.top-bar {
-    display: flex;
-    align-items: baseline;
-    margin: auto;
-    background-color: IndianRed;
-    width: 90%;
-    min-width: 970px;
-    font-family : Arial;
-    font-size: 20px;
-    font-weight: bold;
-}
 
 .log-button {
     width: 120px;
@@ -300,32 +347,6 @@ visibility : hidden;
     cursor: pointer;
 }
 
-.flight-table {
-    table-layout: fixed;
-    border-collapse : collapse;
-    border : 1px solid ;
-    width : 90%;
-    margin : auto;
-}
-
-th {
-    border : 1px solid;
-    text-align: left;
-    padding: 8px;
-    font-family : Arial;
-    background-color : IndianRed;
-    width: 80px;
-}
-
-td {
-    border : 1px solid;
-    text-align: left;
-    padding: 8px;
-    font-family : Arial;
-    overflow : hidden;
-}
-
-tr:nth-child(even) {background-color: IndianRed;}
 
 [v-cloak] {
   display: none;

@@ -21,88 +21,13 @@
 
 <flight-log-table :flight-segments="this.allflights"></flight-log-table>
 
-<table class="flight-table">
-    <thead>
-        <th>Date</th>
-        <th>Pilot</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Takeoff</th>
-        <th>Landing</th>
-        <th>Duration</th>
-        <th>Landings</th>
-        <th></th>
-        <th></th>
-    </thead>
-    <tbody>
-      <tr v-for="(lline,index) in allflights" :key="lline.id" :class="{editing: edits[index] == true}" v-cloak>
-        <td>
-            {{showDate(lline.takeoffTime)}}
-        </td>
-        <td>
-          <div class="view">
-            {{lline.pilot ? lline.pilot : "unknown" }}
-          </div>
-          <div class="edit">
-            <select v-model="lline.pilot">
-                <option> CP</option>
-                <option> Markus</option>
-                <option> Axel</option>
-                <option> TestPilot</option>
-            </select>
-          </div>
-        </td>
-        <td>{{lline.departureAirport}}</td>
-        <td>{{lline.landingAirport}}</td>
-        <td>
-            {{showTime(lline.takeoffTime)}}
-        </td>
-        <td>
-            {{showTime(lline.landingTime)}}
-        </td>
-        <td>{{showDuration(lline)}}</td>
-        <td>
-            <div class="view">
-                {{lline.landingCount}}
-            </div>
-            <div class="edit">
-                <input type="Number" v-bind:value="lline.landingCount" v-on:input="lline.landingCount=$event.target.value" min="1" max="99">
-            </div>
-        </td>
-        
-        <td>
-            <div class="view">
-                          </div>
-            <div class="edit">
-                            </div>
-        </td>
-        <td>
-            <div class="view">
-                <b-btn size="sm" @click="entryEdit(lline,index)">Edit
-                </b-btn>
-                <button class="hidden">None
-                </button>
-            </div>
-            <div class="edit">
-                <button class="small-button" @click="entrySave(lline, index)">Save
-                </button>
-                <button class="small-button" @click="entryDelete(lline,index)">Delete
-                </button>
 
-            </div>
-        </td>
-      </tr>
-    </tbody>
-</table>
 </div>
 </template>
 
 <script>
 const axios = require('axios');
 import Vue from 'vue';
-
-
-
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
@@ -141,7 +66,6 @@ export default {
         return {
             info : null,
             file: null,
-            newflight : false,
             favpilot : '',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
@@ -151,7 +75,7 @@ export default {
                 ],
             allflights : [],
             edits : [],
-            debug_mode : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
+            debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,
             updateurl : '',
             deleteurl : '',
@@ -235,11 +159,12 @@ export default {
         },
 
         readFlightLog : function () {
+            let acturl = this.sreadurl;
             if (this.debug == 1){
-                this.sreadurl = this.sreadurl + '&debug=1'
+                acturl = acturl + '&debug=1'
             }
             
-            axios.get( this.sreadurl
+            axios.get( acturl
                 ).then(response =>
                 {
                     this.allflights  = response.data.reverse()
@@ -251,11 +176,12 @@ export default {
         },
             
         submitEntry : function (data, index){
+            let acturl = this.supdateurl;
             if (this.debug == 1){
-                this.supdateturl = this.supdateurl + '&debug=1'
+                acturl = acturl + '&debug=1'
             }
-
-            axios.post( this.supdateurl, data, {
+            
+            axios.post( acturl, data, {
                 headers: {
                      'Content-Type': 'application/json',
                 }
@@ -270,11 +196,11 @@ export default {
         },
         
         deleteEntry : function (data, index){
+            let acturl = this.sdeleteurl;
             if (this.debug == 1){
-                this.sdeleturl = this.sdeleteurl + '&debug=1'
+                acturl = acturl + '&debug=1'
             }
-            
-            axios.post( this.sdeleteurl, data, {
+            axios.post( acturl, data, {
             headers: {
                 'Content-Type': 'application/json',
             }
@@ -291,13 +217,13 @@ export default {
         
         submitFile(){
             let formData = new FormData();
-            let url = this.screateurl;
+            let acturl = this.screateurl;
             if (this.debug == 1){
-                url = url + '?debug=1'
+                acturl = acturl + '&debug=1'
             }
 
             formData.append('file', this.file);
-            axios.post( url,
+            axios.post( acturl,
             formData,
             {
                 headers: {
@@ -308,8 +234,8 @@ export default {
                 this.info = response.data
                 // eslint-disable-next-line
                 console.log(this.info)
+                console.log(acturl)
                 this.fetchNewFlights(this.info)
-                this.newflight=true
             })
             .catch( error => {
                 console.log('FAILURE SUBMIT!!');

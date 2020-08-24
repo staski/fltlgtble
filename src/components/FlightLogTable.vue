@@ -34,17 +34,27 @@
       {{ data.value }}
     </template>
 
+    <template v-slot:cell(props)="data">
+        <b-badge variant="success" v-if="$parent.edits[data.index]">New</b-badge>
+    </template>
+       
     <template v-slot:cell(edit)="data">
         <b-button size="sm" @click="showModal(data.item)" class="mr-2">
         Edit
         </b-button>
+        <b-button size="sm" @click="entryDelete(data.item)" class="mr-2">
+        Delete
+        </b-button>
     </template>
+
 
     <!-- Optional default data cell scoped slot -->
     <template v-slot:cell()="data">
       <i>{{ data.value }}</i>
     </template>
     </b-table>
+
+
       <b-modal
           size="lg"
           id="modal-edit-segment"
@@ -57,6 +67,15 @@
       
     <b-form>
         <b-form-row>
+            <b-form-group class="px-1" id="input-group-plane" label="Plane" label-for="input-plane">
+               <b-form-select
+                 id="input-plane"
+                 v-model="form.registration"
+                 :options=planeoptions
+                 required
+               ></b-form-select>
+             </b-form-group>
+
             <b-form-group class="px-1" id="input-group-pilot" label="Pilot" label-for="input-pilot">
                <b-form-select
                  id="input-pilot"
@@ -94,7 +113,7 @@
         <b-form-group class="px-1" id="input-group-offblock" label="Block Off" label-for="input-offblock">
             <b-form-timepicker
                 id="input-offblock"
-                v-model="offblockshow"
+                v-model="form.offblock"
                 required
                 placeholder="Off Block Time"
             ></b-form-timepicker>
@@ -296,7 +315,10 @@
                 { text: 'VFR', value: 'VFR'},
                 { text: 'IFR', value: 'IFR' }
         ],
-        offblockshow : 0,
+        planeoptions : [
+          { text: 'DEEBU', value: 'DEEBU'},
+          { text: 'DEKAL', value: 'DEKAL'}
+        ],
         form : {
             type: '',
             registration : '',
@@ -304,10 +326,10 @@
             date : '',
             from : '',
             to : '',
-            offblock : 0,
+            offblock : '',
             takeoff : '',
             landing : '',
-            onblock : 0,
+            onblock : '',
             duration : '',
             hobbsstart : '0.00',
             hobbsend : '0.00',
@@ -338,7 +360,8 @@
           { key: 'landingTime', label: 'Landing' },
             'duration',
             'landingCount',
-            'edit'
+          { key: 'props', label : ''},
+          { key: 'edit', label: ''}
         ]
       }
     },
@@ -346,16 +369,16 @@
         showModal(item) {
             this.selectedItem=item
             this.form.type = 'SEP'
-            this.form.registration = 'DEEBU'
+            this.form.registration = item.plane
             this.form.pilot = item.pilot
             this.form.from = item.departureAirport
             this.form.to = item.landingAirport
             this.form.date = this.$parent.getDate(item.takeoffTime)
-            this.form.offblock = item.takeoffTime - 5 * 60
-            this.offblockshow = this.$parent.showTime(this.form.offblock)
+           
+            this.form.offblock = this.$parent.showTime(item.offBlock)
             this.form.takeoff = this.$parent.showTime(item.takeoffTime)
             this.form.landing = this.$parent.showTime(item.landingTime)
-            this.form.onblock = this.$parent.showTime(Number(item.landingTime)+300)
+            this.form.onblock = this.$parent.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
             this.form.duration = this.$parent.showDuration(item)
             this.form.rules='VFR'
@@ -363,9 +386,56 @@
             this.form.vfrtime = this.$parent.showTime(item.landingTime - item.takeoffTime)
             this.$refs['modal-edit-segment'].show()
         },
+
         handleOk(evt) {
-          alert(JSON.stringify(this.form))
+          var litem = this.selectedItem
+          var lform = this.form
+
+          var takeoff = lform.date
+          console.log("HALLO: " + takeoff)
+          var year = takeoff.getUTCFullYear()
+          var month = takeoff.getUTCMonth()
+          var day = takeoff.getUTCDate()
+          
+          var offBlock, takeoffTime, landingTime, onBlock;
+
+          offBlock = takeoffTime = landingTime = onBlock =
+            new Date(Date.UTC(year, month, day));
+
+          console.log("DATE: " + offBlock )
+          litem.plane = lform.registration
+          litem.type = lform.type
+          litem.pilot = lform.pilot
+          litem.departureAirport = lform.from
+          litem.landingAirport = lform.to
+          
+          
+          litem.offBlock = this.setTimeFromForm(lform.offblock, offBlock).getTime() / 1000
+          litem.takeoffTime = this.setTimeFromForm(lform.takeoff, takeoffTime).getTime()/1000
+          litem.landingTime = this.setTimeFromForm(lform.landing, landingTime).getTime() / 1000
+          litem.onBlock = this.setTimeFromForm(lform.onblock, onBlock).getTime() / 1000
+
+
+          litem.landingCount = lform.landingcount
+          litem.rules = lform.rules
+          litem.function = lform.function
+
+          this.$parent.entrySave (litem, 0)
+
+          //alert(JSON.stringify(this.selectedItem))
         },
+        setTimeFromForm(form, item){
+          
+          console.log("SET: " + item)
+          item.setUTCHours(form.slice(0,2))
+          item.setUTCMinutes(form.slice(3,5))
+          
+          return item
+        },
+
+        entryDelete(item){
+          this.$parent.entryDelete(item,0)
+        }
         
         
     }

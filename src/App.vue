@@ -21,9 +21,10 @@
 
 <flight-log-table :flight-segments="this.allflights"></flight-log-table>
 
-
 </div>
 </template>
+
+
 
 <script>
 const axios = require('axios');
@@ -74,7 +75,6 @@ export default {
                 { name: "TestPilot", id: 3, value: 'TestPilot', mysel: false }
                 ],
             allflights : [],
-            edits : [],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,
             updateurl : '',
@@ -92,21 +92,38 @@ export default {
             this.readFlightLog()
         },
         
+        getAllFlights(){
+            return this.allflights
+        },
+
         fetchNewFlights(myInfo) {
-            var a = this.allflights
-            var mySet = new Set()
-            a.forEach(function ( flight ){
-                mySet.add(flight.id)
-            });
-            var e = this.edits
             var p = this.pilots
+            var a = this.allflights
             myInfo.forEach(function(item){
+                item.duplicate = item.new = false
                 item.pilot = item.pilot ? item.pilot : p[0].value
-                if (mySet.has(item.id)){
-                    console.log("duplicate id" + item.id)
-                } else {
+                a.forEach(function ( flight, idx){
+                    flight.duplicate = false
+                    if (flight.id == item.id){
+                        //console.log ("found dup " + item.id + " from " + item.departureAirport)
+                        flight.duplicate = true
+                        item.duplicate = true
+                        item.idx = idx
+                    }
+                });
+                if (item.duplicate == false) {
+                    //console.log ("found new " + item.id + " from " + item.departureAirport)
+                    item.new = true
+                }
+            });
+
+            myInfo.forEach(function(item){
+                //console.log("new: " +item.new + " dup: " + item.duplicate)
+                if (item.new == true){
                     a.splice(0,0,item);
-                    e.splice(0,0,true);
+                }
+                if (item.duplicate == true){
+                    Vue.set(a, item.idx, item)
                 }
             });
         },
@@ -146,7 +163,7 @@ export default {
         },
         
         entryEdit : function ( line, index ){
-            Vue.set(this.edits, index, true)
+            //Vue.set(this.new, index, true)
         },
 
         entrySave : function ( line, index ){
@@ -171,10 +188,18 @@ export default {
                     //console.log(this.allflights)
                 }).catch(function(){
                     // eslint-disable-next-line
-                    console.log('READ ERROR!');
+                    console.log('READ ERROR!' + error);
                 });
+                this.clearAllFlags()
+          },
+
+        clearAllFlags : function (){
+            this.allflights.forEach( function( flight ) {
+                flight.duplicate = false
+                flight.new = false
+            });
         },
-            
+
         submitEntry : function (data, index){
             let acturl = this.supdateurl;
             if (this.debug == 1){
@@ -186,12 +211,14 @@ export default {
                      'Content-Type': 'application/json',
                 }
                 
-            }).then(response => {
-                Vue.set(this.edits, index, false)
+            }).then(response => {                
+                data.duplicate=false
+                data.new=false
+                Vue.set(this.allflights, index, data)
             })
-            .catch(function(){
+            .catch(error => {
                 // eslint-disable-next-line
-                console.log('FAILURE SAVE!!');
+                console.log(error);
             });
         },
         
@@ -200,22 +227,23 @@ export default {
             if (this.debug == 1){
                 acturl = acturl + '&debug=1'
             }
+            // console.log(acturl)
             axios.post( acturl, data, {
             headers: {
                 'Content-Type': 'application/json',
             }
         
         }).then(response => {
-            Vue.set(this.edits, index, false)
-            this.readFlightLog ()
+            Vue.delete(this.allflights, index)
         })
         .catch(function(){
             // eslint-disable-next-line
-            console.log('FAILURE DELETE!!');
+            console.log('FAILURE DELETE!' + error);
         });
         },
         
         submitFile(){
+            this.clearAllFlags()
             let formData = new FormData();
             let acturl = this.screateurl;
             if (this.debug == 1){
@@ -232,13 +260,11 @@ export default {
             }
             ).then(response => {
                 this.info = response.data
-                // eslint-disable-next-line
-                console.log(this.info)
-                console.log(acturl)
                 this.fetchNewFlights(this.info)
+                this.$refs.file.reset()
             })
             .catch( error => {
-                console.log('FAILURE SUBMIT!!');
+                console.log ( error )
             });
         },
         handleFileUpload(){

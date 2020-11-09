@@ -3,8 +3,12 @@
     <b-table small striped hover :fields="fields" :items="flightSegments" responsive="sm">
 
       <template v-slot:cell(date)="data">
-        {{ $parent.showDate(data.item.takeoffTime) }}
+        {{ showDate(data.item.takeoffTime) }}
       </template>
+
+    <template v-slot:cell(plane)="data">
+      {{ data.value}}
+    </template>
 
     <template v-slot:cell(pilot)="data">
       {{ data.value}}
@@ -19,15 +23,15 @@
     </template>
 
     <template v-slot:cell(takeoffTime)="data">
-      {{ $parent.showTime(data.item.takeoffTime) }}
+      {{ showTime(data.item.takeoffTime) }}
     </template>
 
     <template v-slot:cell(landingTime)="data">
-      {{ $parent.showTime(data.item.landingTime) }}
+      {{ showTime(data.item.landingTime) }}
     </template>
 
     <template v-slot:cell(duration)="data">
-      {{ $parent.showDuration(data.item) }}
+      {{ showDuration(data.item) }}
     </template>
 
     <template v-slot:cell(landingCount)="data">
@@ -35,11 +39,12 @@
     </template>
 
     <template v-slot:cell(props)="data">
-        <b-badge variant="success" v-if="$parent.edits[data.index]">New</b-badge>
+        <b-badge variant="success" v-if="data.item.new"> New</b-badge>
+        <b-badge variant="warning" v-if="data.item.duplicate">Duplicate</b-badge>
     </template>
        
     <template v-slot:cell(edit)="data">
-        <b-button size="sm" @click="showModal(data.item)" class="mr-2">
+        <b-button size="sm" @click="showModal(data.item, data.index)" class="mr-2">
         Edit
         </b-button>
         <b-button size="sm" @click="entryDelete(data.item)" class="mr-2">
@@ -353,6 +358,7 @@
         fields: [
           // A virtual column that doesn't exist in items
             'date',
+            'plane',
             'pilot',
           { key: 'departureAirport', label: 'From' },
           { key: 'landingAirport', label: 'To' },
@@ -366,24 +372,25 @@
       }
     },
     methods : {
-        showModal(item) {
+        showModal(item, index) {
             this.selectedItem=item
+            this.index = index
             this.form.type = 'SEP'
             this.form.registration = item.plane
             this.form.pilot = item.pilot
             this.form.from = item.departureAirport
             this.form.to = item.landingAirport
-            this.form.date = this.$parent.getDate(item.takeoffTime)
+            this.form.date = this.getDate(item.takeoffTime)
            
-            this.form.offblock = this.$parent.showTime(item.offBlock)
-            this.form.takeoff = this.$parent.showTime(item.takeoffTime)
-            this.form.landing = this.$parent.showTime(item.landingTime)
-            this.form.onblock = this.$parent.showTime(item.onBlock)
+            this.form.offblock = this.showTime(item.offBlock)
+            this.form.takeoff = this.showTime(item.takeoffTime)
+            this.form.landing = this.showTime(item.landingTime)
+            this.form.onblock = this.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
-            this.form.duration = this.$parent.showDuration(item)
+            this.form.duration = this.showDuration(item)
             this.form.rules='VFR'
             this.form.function='PIC'
-            this.form.vfrtime = this.$parent.showTime(item.landingTime - item.takeoffTime)
+            this.form.vfrtime = this.showTime(item.landingTime - item.takeoffTime)
             this.$refs['modal-edit-segment'].show()
         },
 
@@ -420,7 +427,7 @@
           litem.rules = lform.rules
           litem.function = lform.function
 
-          this.$parent.entrySave (litem, 0)
+          this.$parent.entrySave (litem, this.index)
 
           //alert(JSON.stringify(this.selectedItem))
         },
@@ -435,9 +442,42 @@
 
         entryDelete(item){
           this.$parent.entryDelete(item,0)
+        },
+        
+        // some utility functions
+        showDate : function (timer){
+            var date = new Date(timer * 1000)
+            var day  = date.getDate ()
+            day = (day >= 10 ? day : "0" + day)
+            var month = date.getMonth () + 1
+            month = (month >= 10 ? month : "0" + month)
+            var year = date.getFullYear ()
+            return day + "." + month + "." + year
+        },
+        
+        getDate : function (timer) {
+                return new Date(timer * 1000)
+        },
+        
+        showTime : function (timer){
+                var date = new Date(timer * 1000)
+                var hours = date.getUTCHours()
+                hours = (hours >= 10 ? hours : "0" + hours)
+                var minutes = date.getUTCMinutes ()
+                var seconds = date.getUTCSeconds ()
+                minutes = seconds < 30 ? minutes : minutes + 1
+                minutes = (minutes >= 10 ? minutes : "0" + minutes)
+                return hours + ":" + minutes
+        },
+        
+        showTimeSeconds : function (timer){
+                return timer
+        },
+
+        showDuration : function (line) {
+            var duration = line.landingTime - line.takeoffTime
+            return this.showTime(duration)
         }
-        
-        
     }
   }
 </script>

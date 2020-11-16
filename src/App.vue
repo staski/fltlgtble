@@ -1,103 +1,54 @@
 <template>
 <div class="app">
-<div class="top-bar">
-<div class="upload-container">
-<button @click="handleLogRead()" class="log-button">refresh</button>
+<div>
+<b-navbar toggleable="lg" variant="dark" type="dark">
+ <b-navbar-brand href="#">DEEBU Flight Log</b-navbar-brand>
+ <b-btn @click="handleLogRead()">Read</b-btn>
+ <b-navbar-nav class="ml-auto">
+       <b-nav-form>
+       <b-form-file
+         plain
+         v-model="file"
+         ref="file"
+         placeholder="chose gpx file..."
+         drop-placeholder="Drop file here..."
+         @change="handleFileUpload()">
+        </b-form-file>
+       </b-nav-form>
+ </b-navbar-nav>
+</b-navbar>
 </div>
-<fl-upload v-bind:debug="this.debug_mode" v-bind:url="this.base_url" @send-result="fetchNewFlights($event)">
-</fl-upload>
-DEEBU Flight Log
-</div>
-<table class="flight-table">
-    <thead>
-        <th>Date</th>
-        <th>Pilot</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Takeoff</th>
-        <th>Landing</th>
-        <th>Duration</th>
-        <th>Landings</th>
-        <th></th>
-        <th></th>
-    </thead>
-    <tbody>
-      <tr v-for="(lline,index) in allflights" :key="lline.id" :class="{editing: edits[index] == true}" v-cloak>
-        <td>
-            {{showDate(lline.takeoffTime)}}
-        </td>
-        <td>
-          <div class="view">
-            {{lline.pilot ? lline.pilot : "unknown" }}
-          </div>
-          <div class="edit">
-            <select v-model="lline.pilot">
-                <option> CP</option>
-                <option> Markus</option>
-                <option> Axel</option>
-                <option> TestPilot</option>
-            </select>
-          </div>
-        </td>
-        <td>{{lline.departureAirport}}</td>
-        <td>{{lline.landingAirport}}</td>
-        <td>
-            {{showTime(lline.takeoffTime)}}
-        </td>
-        <td>
-            {{showTime(lline.landingTime)}}
-        </td>
-        <td>{{showDuration(lline)}}</td>
-        <td>
-            <div class="view">
-                {{lline.landingCount}}
-            </div>
-            <div class="edit">
-                <input type="Number" v-bind:value="lline.landingCount" v-on:input="lline.landingCount=$event.target.value" min="1" max="99">
-            </div>
-        </td>
-        
-        <td>
-            <div class="view">
-                          </div>
-            <div class="edit">
-                            </div>
-        </td>
-        <td>
-            <div class="view">
-                <button class="small-button" @click="entryEdit(lline,index)">Edit
-                </button>
-                <button class="hidden">None
-                </button>
-            </div>
-            <div class="edit">
-                <button class="small-button" @click="entrySave(lline, index)">Save
-                </button>
-                <button class="small-button" @click="entryDelete(lline,index)">Delete
-                </button>
 
-            </div>
-        </td>
-      </tr>
-    </tbody>
-</table>
+<flight-log-table :flight-segments="this.allflights"></flight-log-table>
+
 </div>
 </template>
+
+
 
 <script>
 const axios = require('axios');
 import Vue from 'vue';
-import FlUpload from './components/FlUpload.vue';
-Vue.component('fl-upload', FlUpload);
+import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
+Vue.use(BootstrapVue)
+Vue.use(BootstrapVueIcons)
+
+import FlightLogTable from './components/FlightLogTable.vue';
+Vue.component('flight-log-table', FlightLogTable);
 
 export default {
     created: function () {
         // HTTP
+        this.createurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=create',
         this.updateurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=update',
         this.deleteurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=delete',
         this.readurl = 'http://' + this.base_url + '/mngfltlg.cgi?action=read',
         
         //HTTPS
+        this.screateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=create',
         this.supdateurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=update',
         this.sdeleteurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=delete',
         this.sreadurl = 'https://' + this.base_url + '/mngfltlg.cgi?action=read',
@@ -114,6 +65,8 @@ export default {
     
     data () {
         return {
+            info : null,
+            file: null,
             favpilot : '',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
@@ -122,8 +75,7 @@ export default {
                 { name: "TestPilot", id: 3, value: 'TestPilot', mysel: false }
                 ],
             allflights : [],
-            edits : [],
-            debug_mode : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
+            debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,
             updateurl : '',
             deleteurl : '',
@@ -140,21 +92,38 @@ export default {
             this.readFlightLog()
         },
         
+        getAllFlights(){
+            return this.allflights
+        },
+
         fetchNewFlights(myInfo) {
-            var a = this.allflights
-            var mySet = new Set()
-            a.forEach(function ( flight ){
-                mySet.add(flight.id)
-            });
-            var e = this.edits
             var p = this.pilots
+            var a = this.allflights
             myInfo.forEach(function(item){
+                item.duplicate = item.new = false
                 item.pilot = item.pilot ? item.pilot : p[0].value
-                if (mySet.has(item.id)){
-                    console.log("duplicate id" + item.id)
-                } else {
+                a.forEach(function ( flight, idx){
+                    flight.duplicate = false
+                    if (flight.id == item.id){
+                        //console.log ("found dup " + item.id + " from " + item.departureAirport)
+                        flight.duplicate = true
+                        item.duplicate = true
+                        item.idx = idx
+                    }
+                });
+                if (item.duplicate == false) {
+                    //console.log ("found new " + item.id + " from " + item.departureAirport)
+                    item.new = true
+                }
+            });
+
+            myInfo.forEach(function(item){
+                //console.log("new: " +item.new + " dup: " + item.duplicate)
+                if (item.new == true){
                     a.splice(0,0,item);
-                    e.splice(0,0,true);
+                }
+                if (item.duplicate == true){
+                    Vue.set(a, item.idx, item)
                 }
             });
         },
@@ -169,11 +138,17 @@ export default {
             return day + "." + month + "." + year
         },
         
+        getDate : function (timer) {
+                return new Date(timer * 1000)
+        },
+        
         showTime : function (timer){
                 var date = new Date(timer * 1000)
                 var hours = date.getUTCHours()
                 hours = (hours >= 10 ? hours : "0" + hours)
                 var minutes = date.getUTCMinutes ()
+                var seconds = date.getUTCSeconds ()
+                minutes = seconds < 30 ? minutes : minutes + 1
                 minutes = (minutes >= 10 ? minutes : "0" + minutes)
                 return hours + ":" + minutes
         },
@@ -184,20 +159,11 @@ export default {
 
         showDuration : function (line) {
             var duration = line.landingTime - line.takeoffTime
-            var minutes = Math.floor(duration/60)
-            var hours = Math.floor(duration/3600)
-            minutes = minutes - 60 * hours
-            var str_hours, str_minutes
-            str_hours = Number(hours).toString()
-            str_minutes = Number(minutes).toString()
-            if (minutes < 10) {
-                str_minutes = "0" + str_minutes;
-            }
-            return str_hours + ":" + str_minutes
+            return this.showTime(duration)
         },
         
         entryEdit : function ( line, index ){
-            Vue.set(this.edits, index, true)
+            //Vue.set(this.new, index, true)
         },
 
         entrySave : function ( line, index ){
@@ -210,58 +176,102 @@ export default {
         },
 
         readFlightLog : function () {
+            let acturl = this.sreadurl;
             if (this.debug == 1){
-                this.sreadurl = this.sreadurl + '&debug=1'
+                acturl = acturl + '&debug=1'
             }
             
-            axios.get( this.sreadurl
+            axios.get( acturl
                 ).then(response =>
                 {
                     this.allflights  = response.data.reverse()
+                    //console.log(this.allflights)
                 }).catch(function(){
                     // eslint-disable-next-line
-                    console.log('READ ERROR!');
+                    console.log('READ ERROR!' + error);
                 });
-        },
-            
-        submitEntry : function (data, index){
-            if (this.debug == 1){
-                this.supdateturl = this.supdateurl + '&debug=1'
-            }
+                this.clearAllFlags()
+          },
 
-            axios.post( this.supdateurl, data, {
+        clearAllFlags : function (){
+            this.allflights.forEach( function( flight ) {
+                flight.duplicate = false
+                flight.new = false
+            });
+        },
+
+        submitEntry : function (data, index){
+            let acturl = this.supdateurl;
+            if (this.debug == 1){
+                acturl = acturl + '&debug=1'
+            }
+            
+            axios.post( acturl, data, {
                 headers: {
                      'Content-Type': 'application/json',
                 }
                 
-            }).then(response => {
-                Vue.set(this.edits, index, false)
+            }).then(response => {                
+                data.duplicate=false
+                data.new=false
+                Vue.set(this.allflights, index, data)
             })
-            .catch(function(){
+            .catch(error => {
                 // eslint-disable-next-line
-                console.log('FAILURE!!');
+                console.log(error);
             });
         },
         
         deleteEntry : function (data, index){
+            let acturl = this.sdeleteurl;
             if (this.debug == 1){
-                this.sdeleturl = this.sdeleteurl + '&debug=1'
+                acturl = acturl + '&debug=1'
             }
-            
-            axios.post( this.sdeleteurl, data, {
+            // console.log(acturl)
+            axios.post( acturl, data, {
             headers: {
                 'Content-Type': 'application/json',
             }
         
         }).then(response => {
-            Vue.set(this.edits, index, false)
-            this.readFlightLog ()
+            Vue.delete(this.allflights, index)
         })
         .catch(function(){
             // eslint-disable-next-line
-            console.log('FAILURE!!');
+            console.log('FAILURE DELETE!' + error);
         });
+        },
+        
+        submitFile(){
+            this.clearAllFlags()
+            let formData = new FormData();
+            let acturl = this.screateurl;
+            if (this.debug == 1){
+                acturl = acturl + '&debug=1'
+            }
+
+            formData.append('file', this.file);
+            axios.post( acturl,
+            formData,
+            {
+                headers: {
+                'Content-Type': 'multipart/form-data',
+                }
+            }
+            ).then(response => {
+                this.info = response.data
+                this.fetchNewFlights(this.info)
+                this.$refs.file.reset()
+            })
+            .catch( error => {
+                console.log ( error )
+            });
+        },
+        handleFileUpload(){
+            this.file = this.$refs.file.$refs.input.files[0]
+            this.submitFile()
         }
+
     }
 }
 
@@ -277,17 +287,6 @@ visibility : hidden;
     border: 1px solid;
     background-color: white;
 }
-.top-bar {
-    display: flex;
-    align-items: baseline;
-    margin: auto;
-    background-color: IndianRed;
-    width: 90%;
-    min-width: 970px;
-    font-family : Arial;
-    font-size: 20px;
-    font-weight: bold;
-}
 
 .log-button {
     width: 120px;
@@ -300,32 +299,6 @@ visibility : hidden;
     cursor: pointer;
 }
 
-.flight-table {
-    table-layout: fixed;
-    border-collapse : collapse;
-    border : 1px solid ;
-    width : 90%;
-    margin : auto;
-}
-
-th {
-    border : 1px solid;
-    text-align: left;
-    padding: 8px;
-    font-family : Arial;
-    background-color : IndianRed;
-    width: 80px;
-}
-
-td {
-    border : 1px solid;
-    text-align: left;
-    padding: 8px;
-    font-family : Arial;
-    overflow : hidden;
-}
-
-tr:nth-child(even) {background-color: IndianRed;}
 
 [v-cloak] {
   display: none;

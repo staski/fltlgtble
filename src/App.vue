@@ -2,21 +2,28 @@
 <div class="app">
 <div>
 <b-navbar toggleable="lg" variant="dark" type="dark">
- <b-navbar-brand href="#">DEEBU Flight Log</b-navbar-brand>
- <b-btn @click="handleLogRead()">Read</b-btn>
- <b-navbar-nav class="ml-auto">
+ <b-navbar-brand href="#" class="mr-5">
+ LogThisFlight</b-navbar-brand>
+ <b-btn @click="handleLogRead()" class="mx-1"><b-icon icon="arrow-repeat" aria-hidden="true"></b-icon> Read Log</b-btn>
+<b-btn class="mx-1">
+      <b-icon icon="gear-fill" aria-hidden="true"></b-icon> Settings
+</b-btn>
+<b-navbar-nav class="ml-auto">
        <b-nav-form>
        <b-form-file
          plain
-         v-model="file"
+         v-model="files"
          ref="file"
          placeholder="chose gpx file..."
          drop-placeholder="Drop file here..."
+         accept=".gpx"
+         multiple
          @change="handleFileUpload()">
         </b-form-file>
        </b-nav-form>
+
  </b-navbar-nav>
-</b-navbar>
+ </b-navbar>
 </div>
 
 <flight-log-table :flight-segments="this.allflights"></flight-log-table>
@@ -25,7 +32,7 @@
 </template>
 
 
-
+    
 <script>
 const axios = require('axios');
 import Vue from 'vue';
@@ -61,13 +68,26 @@ export default {
         if (localStorage.favpilot) {
           this.favpilot = localStorage.favpilot;
         }
+        if (localStorage.favplane) {
+          this.favplane = localStorage.favplane;
+        }
+        if (localStorage.favrules) {
+          this.favrules = localStorage.favrules;
+        }
+        if (localStorage.favfunction) {
+          this.favfunction = localStorage.favfunction;
+        }
+
     },
     
     data () {
         return {
             info : null,
-            file: null,
+            files: [],
             favpilot : '',
+            favplane : '',
+            favrules : '',
+            favfunction : '',
             pilots : [
                 { name: "CP", id: 0, value: 'CP', mysel: false },
                 { name: "Markus", id: 1, value: 'Markus', mysel: true },
@@ -94,38 +114,6 @@ export default {
         
         getAllFlights(){
             return this.allflights
-        },
-
-        fetchNewFlights(myInfo) {
-            var p = this.pilots
-            var a = this.allflights
-            myInfo.forEach(function(item){
-                item.duplicate = item.new = false
-                item.pilot = item.pilot ? item.pilot : p[0].value
-                a.forEach(function ( flight, idx){
-                    flight.duplicate = false
-                    if (flight.id == item.id){
-                        //console.log ("found dup " + item.id + " from " + item.departureAirport)
-                        flight.duplicate = true
-                        item.duplicate = true
-                        item.idx = idx
-                    }
-                });
-                if (item.duplicate == false) {
-                    //console.log ("found new " + item.id + " from " + item.departureAirport)
-                    item.new = true
-                }
-            });
-
-            myInfo.forEach(function(item){
-                //console.log("new: " +item.new + " dup: " + item.duplicate)
-                if (item.new == true){
-                    a.splice(0,0,item);
-                }
-                if (item.duplicate == true){
-                    Vue.set(a, item.idx, item)
-                }
-            });
         },
 
         showDate : function (timer){
@@ -168,6 +156,9 @@ export default {
 
         entrySave : function ( line, index ){
             localStorage.favpilot = line.pilot;
+            localStorage.favplane = line.plane;
+            localStorage.favrules = line.rules;
+            localStorage.favfunction = line.function;
             this.submitEntry(line, index);
         },
         
@@ -229,49 +220,85 @@ export default {
             }
             // console.log(acturl)
             axios.post( acturl, data, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        
-        }).then(response => {
-            Vue.delete(this.allflights, index)
-        })
-        .catch(function(){
-            // eslint-disable-next-line
-            console.log('FAILURE DELETE!' + error);
-        });
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
+                Vue.delete(this.allflights, index)
+            }).catch(function(){
+                // eslint-disable-next-line
+                console.log('FAILURE DELETE!' + error);
+            });
         },
         
-        submitFile(){
-            this.clearAllFlags()
+        async handleFileUpload(){
+            this.files = Array.from(this.$refs.file.$refs.input.files)
+            
+            for (let i = 0; i < this.files.length; i++){
+                //console.log(this.files[i])
+                await this.submitFile(this.files[i])
+            }
+            this.$refs.file.reset()
+        },
+
+        async submitFile(file){
+            //this.clearAllFlags()
             let formData = new FormData();
             let acturl = this.screateurl;
             if (this.debug == 1){
                 acturl = acturl + '&debug=1'
             }
 
-            formData.append('file', this.file);
-            axios.post( acturl,
-            formData,
-            {
-                headers: {
-                'Content-Type': 'multipart/form-data',
-                }
-            }
-            ).then(response => {
+            formData.append('file', file);
+            formData.append('pilot', this.favpilot)
+            try {
+                console.log("before")
+                const response = await axios.post(acturl,
+                    formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        }
+                    });
                 this.info = response.data
                 this.fetchNewFlights(this.info)
-                this.$refs.file.reset()
-            })
-            .catch( error => {
+                console.log(this.info)
+            } catch (error){
                 console.log ( error )
-            });
+            }
         },
-        handleFileUpload(){
-            this.file = this.$refs.file.$refs.input.files[0]
-            this.submitFile()
-        }
 
+        fetchNewFlights(myInfo) {
+            var p = this.pilots
+            var a = this.allflights
+            myInfo.forEach(function(item){
+                item.duplicate = item.new = false
+                item.pilot = item.pilot ? item.pilot : p[0].value
+                a.forEach(function ( flight, idx){
+                    flight.duplicate = false
+                    if (flight.id == item.id){
+                        //console.log ("found dup " + item.id + " from " + item.departureAirport)
+                        flight.duplicate = true
+                        item.duplicate = true
+                        item.idx = idx
+                    }
+                });
+                if (item.duplicate == false) {
+                    //console.log ("found new " + item.id + " from " + item.departureAirport)
+                    item.new = true
+                }
+            });
+
+            myInfo.forEach(function(item){
+                //console.log("new: " +item.new + " dup: " + item.duplicate)
+                if (item.new == true){
+                    a.splice(0,0,item);
+                }
+                if (item.duplicate == true){
+                    Vue.set(a, item.idx, item)
+                }
+            });
+        }
     }
 }
 

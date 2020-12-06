@@ -2,31 +2,91 @@
 <div class="app">
 <div>
 <b-navbar toggleable="lg" variant="dark" type="dark">
- <b-navbar-brand href="#" class="mr-5">
- LogThisFlight</b-navbar-brand>
- <b-btn @click="handleLogRead()" class="mx-1"><b-icon icon="arrow-repeat" aria-hidden="true"></b-icon> Read Log</b-btn>
-<b-btn class="mx-1">
-      <b-icon icon="gear-fill" aria-hidden="true"></b-icon> Settings
-</b-btn>
-<b-navbar-nav class="ml-auto">
-       <b-nav-form>
-       <b-form-file
-         plain
-         v-model="files"
-         ref="file"
-         placeholder="chose gpx file..."
-         drop-placeholder="Drop file here..."
-         accept=".gpx"
-         multiple
-         @change="handleFileUpload()">
-        </b-form-file>
-       </b-nav-form>
+    <b-navbar-brand href="#" class="mr-5">
+        LogThisFlight
+    </b-navbar-brand>
+    <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
- </b-navbar-nav>
- </b-navbar>
+    <b-collapse id="nav-collapse" is-nav>
+    <b-navbar-nav class="ml-auto">
+    <b-btn @click="handleLogRead()" class="mx-1"><b-icon icon="arrow-repeat" aria-hidden="true"></b-icon> Refresh</b-btn>
+    <b-btn class="mx-1" v-if="false"><b-icon icon="gear-fill" aria-hidden="true"></b-icon> Settings</b-btn>
+    <b-btn @click="uploadVisible = !uploadVisible"
+        :class="uploadVisible ? null : 'collapsed'"
+        class="mx-1">
+        <b-icon icon="upload" aria-hidden="true"></b-icon>
+        Upload
+    </b-btn>
+    </b-navbar-nav>
+    </b-collapse>
+</b-navbar>
+ <b-collapse id="collapse-upload" v-model="uploadVisible">
+    <b-card class="mt-3" bg-variant="light">
+    <b-form>
+        <b-form-row>
+            <b-form-group class="mx-1" id="input-group-pilot" label="Pilot" label-for="input-pilot">
+               <b-form-select
+                    v-model="favpilot"
+                    :options=pilots
+                    id="input-pilot"
+                    required
+                ></b-form-select>
+             </b-form-group>
+            <b-form-group class="mx-1" id="input-group-plane" label="Plane" label-for="input-plane">
+               <b-form-select
+                    v-model="favplane"
+                    :options=planes
+                    id="input-plane"
+                    required
+                ></b-form-select>
+             </b-form-group>
+            <b-form-group class="mx-1" id="input-group-rules" label="Flight Rules" label-for="input-rules">
+               <b-form-select
+                    v-model="favrules"
+                    :options=rules
+                    id="input-rules"
+                    required
+                ></b-form-select>
+             </b-form-group>
+            <b-form-group class="mx-1" id="input-group-function" label="Function" label-for="input-function">
+               <b-form-select
+                    v-model="favfunction"
+                    :options=functions
+                    id="input-function"
+                    required
+                ></b-form-select>
+             </b-form-group>
+            <b-form-group class="mx-1" id="input-group-file" label="File" label-for="input-file">
+                <b-form-file
+                    id="input-file"
+                    v-model="files"
+                    ref="file"
+                    placeholder="chose gpx file..."
+                    drop-placeholder="Drop file here..."
+                    accept=".gpx"
+                    multiple
+                    @change="handleFileUpload()">
+                </b-form-file>
+            </b-form-group>
+         </b-form-row>
+    </b-form>
+       
+       
+       <b-form-select
+       </b-form-select>
+       
+
+    </b-card>
+</b-collapse>
+
 </div>
 
-<flight-log-table :flight-segments="this.allflights"></flight-log-table>
+<flight-log-table :flight-segments="this.allflights"
+                    :planes="planes"
+                    :pilots="pilots"
+                    :functions="functions"
+                    :rules="rules"
+                    ></flight-log-table>
 
 </div>
 </template>
@@ -82,6 +142,7 @@ export default {
     
     data () {
         return {
+            uploadVisible : false,
             info : null,
             files: [],
             favpilot : '',
@@ -89,10 +150,22 @@ export default {
             favrules : '',
             favfunction : '',
             pilots : [
-                { name: "CP", id: 0, value: 'CP', mysel: false },
-                { name: "Markus", id: 1, value: 'Markus', mysel: true },
-                { name: "Axel", id: 2, value: 'Axel', mysel: false },
-                { name: "TestPilot", id: 3, value: 'TestPilot', mysel: false }
+                { text: "CP", value: 'CP'},
+                { text: "Markus", value: 'Markus'},
+                { text: "Axel", value: 'Axel'},
+                { text: "TestPilot", value: 'TestPilot'}
+                ],
+            planes : [
+                { text: "DEEBU", value: 'DEEBU'},
+                { text: "DEKAL", value: 'DEKAL'}
+                ],
+            rules : [
+                { text: "VFR", value: 'VFR'},
+                { text: "IFR", value: 'IFR'}
+                ],
+            functions : [
+                { text: "PIC", value: 'PIC'},
+                { text: "DUAL", value: 'DUAL'}
                 ],
             allflights : [],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
@@ -232,6 +305,7 @@ export default {
         },
         
         async handleFileUpload(){
+            this.uploadVisible = false
             this.files = Array.from(this.$refs.file.$refs.input.files)
             
             for (let i = 0; i < this.files.length; i++){
@@ -251,6 +325,9 @@ export default {
 
             formData.append('file', file);
             formData.append('pilot', this.favpilot)
+            formData.append('plane', this.favplane)
+            formData.append('rules', this.favrules)
+            formData.append('function', this.favfunction)
             try {
                 console.log("before")
                 const response = await axios.post(acturl,
@@ -273,6 +350,7 @@ export default {
             var a = this.allflights
             myInfo.forEach(function(item){
                 item.duplicate = item.new = false
+                console.log("pilot from server = " + item.pilot)
                 item.pilot = item.pilot ? item.pilot : p[0].value
                 a.forEach(function ( flight, idx){
                     flight.duplicate = false

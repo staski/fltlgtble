@@ -76,7 +76,7 @@
                <b-form-select
                  id="input-plane"
                  v-model="form.registration"
-                 :options=planeoptions
+                 :options=planes
                  required
                ></b-form-select>
              </b-form-group>
@@ -85,8 +85,7 @@
                <b-form-select
                  id="input-pilot"
                  v-model="form.pilot"
-                 :options="$parent.pilots"
-                 text-field="name"
+                 :options=pilots
                  required
                ></b-form-select>
              </b-form-group>
@@ -216,15 +215,15 @@
 
     <b-form-group class="px-3" label="Flight Rules">
         <b-form-radio-group
-            v-model=form.rules
-            :options="rulesoptions"
+            v-model="form.rules"
+            :options=rules
         ></b-form-radio-group>
     </b-form-group>
     
     <b-form-group class="px-3" label="Function">
         <b-form-select
-            v-model=form.function
-            :options="functionoptions"
+            v-model="form.function"
+            :options=functions
         ></b-form-select>
     </b-form-group>
 
@@ -308,7 +307,11 @@
     name: 'Flight-Log-Table',
     props: {
         debug : Number,
-        flightSegments : Array
+        flightSegments : Array,
+        pilots: Array,
+        planes: Array,
+        rules: Array,
+        functions: Array,
         },
     data() {
       return {
@@ -347,12 +350,6 @@
             pictime : 0,
             dualtime : 0
         },
-        pilots : [
-            { name: "CP", id: 0, value: 'CP', mysel: false },
-            { name: "Markus", id: 1, value: 'Markus', mysel: true },
-            { name: "Axel", id: 2, value: 'Axel', mysel: false },
-            { name: "TestPilot", id: 3, value: 'TestPilot', mysel: false }
-            ],
         show : true,
         selectedItem: null,
         fields: [
@@ -388,8 +385,8 @@
             this.form.onblock = this.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
             this.form.duration = this.showDuration(item)
-            this.form.rules='VFR'
-            this.form.function='PIC'
+            this.form.rules = item.rules
+            this.form.function = item.function
             this.form.vfrtime = this.showTime(item.landingTime - item.takeoffTime)
             this.$refs['modal-edit-segment'].show()
         },

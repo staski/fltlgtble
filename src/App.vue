@@ -9,6 +9,8 @@
 
     <b-collapse id="nav-collapse" is-nav>
     <b-navbar-nav class="ml-auto">
+    <b-btn @click="handleLogExport()" class="mx-1"><b-icon icon="file-spreadsheet" aria-hidden="true"></b-icon> Export
+    </b-btn>
     <b-btn @click="handleLogRead()" class="mx-1"><b-icon icon="arrow-repeat" aria-hidden="true"></b-icon> Refresh</b-btn>
     <b-btn class="mx-1" v-if="false"><b-icon icon="gear-fill" aria-hidden="true"></b-icon> Settings</b-btn>
     <b-btn @click="uploadVisible = !uploadVisible"
@@ -99,6 +101,7 @@ import Vue from 'vue';
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import FlUtils from './flutils.js'
 
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
@@ -168,6 +171,14 @@ export default {
                 { text: "DUAL", value: 'DUAL'}
                 ],
             allflights : [],
+            exportcolumns :    [
+                { label : "Date", field : "takeoffTime" , dataFormat: FlUtils.showDate },
+                { label : "Plane", field : "plane" },
+                { label : " Pilot", field : "pilot" },
+                { label : "From", field : "departureAirport"},
+                { label : "To" , field : "landingAirport" },
+                { label : "Duration", field : "row" , dataFormat: this.showDuration }
+                ],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,
             updateurl : '',
@@ -181,50 +192,17 @@ export default {
     
     methods : {
 
+        handleLogExport () {
+            FlUtils.exportExcel (this.exportcolumns, this.allflights)
+        },
+        
         handleLogRead() {
             this.readFlightLog()
         },
         
-        getAllFlights(){
-            return this.allflights
-        },
-
-        showDate : function (timer){
-            var date = new Date(timer * 1000)
-            var day  = date.getDate ()
-            day = (day >= 10 ? day : "0" + day)
-            var month = date.getMonth () + 1
-            month = (month >= 10 ? month : "0" + month)
-            var year = date.getFullYear ()
-            return day + "." + month + "." + year
-        },
-        
-        getDate : function (timer) {
-                return new Date(timer * 1000)
-        },
-        
-        showTime : function (timer){
-                var date = new Date(timer * 1000)
-                var hours = date.getUTCHours()
-                hours = (hours >= 10 ? hours : "0" + hours)
-                var minutes = date.getUTCMinutes ()
-                var seconds = date.getUTCSeconds ()
-                minutes = seconds < 30 ? minutes : minutes + 1
-                minutes = (minutes >= 10 ? minutes : "0" + minutes)
-                return hours + ":" + minutes
-        },
-        
-        showTimeSeconds : function (timer){
-                return timer
-        },
-
         showDuration : function (line) {
             var duration = line.landingTime - line.takeoffTime
-            return this.showTime(duration)
-        },
-        
-        entryEdit : function ( line, index ){
-            //Vue.set(this.new, index, true)
+            return FlUtils.showTime(duration)
         },
 
         entrySave : function ( line, index ){
@@ -241,13 +219,13 @@ export default {
 
         readFlightLog : function () {
             let acturl = this.sreadurl;
+            
             if (this.debug == 1){
                 acturl = acturl + '&debug=1'
             }
-            
             axios.get( acturl
                 ).then(response =>
-                {
+                {   
                     this.allflights  = response.data.reverse()
                     //console.log(this.allflights)
                 }).catch(function(){
@@ -350,7 +328,7 @@ export default {
             var a = this.allflights
             myInfo.forEach(function(item){
                 item.duplicate = item.new = false
-                console.log("pilot from server = " + item.pilot)
+                //console.log("pilot from server = " + item.pilot)
                 item.pilot = item.pilot ? item.pilot : p[0].value
                 a.forEach(function ( flight, idx){
                     flight.duplicate = false

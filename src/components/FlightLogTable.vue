@@ -303,7 +303,10 @@
 </template>
 
 <script>
-  export default {
+
+import FlUtils from '../flutils.js'
+
+export default {
     name: 'Flight-Log-Table',
     props: {
         debug : Number,
@@ -377,17 +380,17 @@
             this.form.pilot = item.pilot
             this.form.from = item.departureAirport
             this.form.to = item.landingAirport
-            this.form.date = this.getDate(item.takeoffTime)
+            this.form.date = new Date (item.takeoffTime * 1000)
            
-            this.form.offblock = this.showTime(item.offBlock)
-            this.form.takeoff = this.showTime(item.takeoffTime)
-            this.form.landing = this.showTime(item.landingTime)
-            this.form.onblock = this.showTime(item.onBlock)
+            this.form.offblock = FlUtils.showTime(item.offBlock)
+            this.form.takeoff = FlUtils.showTime(item.takeoffTime)
+            this.form.landing = FlUtils.showTime(item.landingTime)
+            this.form.onblock = FlUtils.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
             this.form.duration = this.showDuration(item)
             this.form.rules = item.rules
             this.form.function = item.function
-            this.form.vfrtime = this.showTime(item.landingTime - item.takeoffTime)
+            this.form.vfrtime = FlUtils.showTime(item.landingTime - item.takeoffTime)
             this.$refs['modal-edit-segment'].show()
         },
 
@@ -428,6 +431,7 @@
 
           //alert(JSON.stringify(this.selectedItem))
         },
+        
         setTimeFromForm(form, item){
           
           console.log("SET: " + item)
@@ -443,28 +447,11 @@
         
         // some utility functions
         showDate : function (timer){
-            var date = new Date(timer * 1000)
-            var day  = date.getDate ()
-            day = (day >= 10 ? day : "0" + day)
-            var month = date.getMonth () + 1
-            month = (month >= 10 ? month : "0" + month)
-            var year = date.getFullYear ()
-            return day + "." + month + "." + year
+            return FlUtils.showDate(timer)
         },
-        
-        getDate : function (timer) {
-                return new Date(timer * 1000)
-        },
-        
+
         showTime : function (timer){
-                var date = new Date(timer * 1000)
-                var hours = date.getUTCHours()
-                hours = (hours >= 10 ? hours : "0" + hours)
-                var minutes = date.getUTCMinutes ()
-                var seconds = date.getUTCSeconds ()
-                minutes = seconds < 30 ? minutes : minutes + 1
-                minutes = (minutes >= 10 ? minutes : "0" + minutes)
-                return hours + ":" + minutes
+            return FlUtils.showTime( timer )
         },
         
         showTimeSeconds : function (timer){
@@ -473,7 +460,7 @@
 
         showDuration : function (line) {
             var duration = line.landingTime - line.takeoffTime
-            return this.showTime(duration)
+            return FlUtils.showTime(duration)
         }
     }
   }

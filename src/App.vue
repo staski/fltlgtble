@@ -228,7 +228,7 @@ export default {
                 {   
                     this.allflights  = response.data.reverse()
                     //console.log(this.allflights)
-                }).catch(function(){
+                }).catch(function(error){
                     // eslint-disable-next-line
                     console.log('READ ERROR!' + error);
                 });

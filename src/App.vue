@@ -72,12 +72,7 @@
             </b-form-group>
          </b-form-row>
     </b-form>
-       
-       
-       <b-form-select
-       </b-form-select>
-       
-
+ 
     </b-card>
 </b-collapse>
 

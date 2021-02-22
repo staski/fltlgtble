@@ -351,7 +351,8 @@ export default {
             ifrtime : 0,
             airbornetime : 0,
             pictime : 0,
-            dualtime : 0
+            dualtime : 0,
+            stats : null
         },
         show : true,
         selectedItem: null,
@@ -391,6 +392,7 @@ export default {
             this.form.rules = item.rules
             this.form.function = item.function
             this.form.vfrtime = FlUtils.showTime(item.landingTime - item.takeoffTime)
+            this.form.stats = item.stats
             this.$refs['modal-edit-segment'].show()
         },
 
@@ -399,7 +401,7 @@ export default {
           var lform = this.form
 
           var takeoff = lform.date
-          console.log("HALLO: " + takeoff)
+          //console.log("HALLO: " + takeoff)
           var year = takeoff.getUTCFullYear()
           var month = takeoff.getUTCMonth()
           var day = takeoff.getUTCDate()
@@ -409,7 +411,7 @@ export default {
           offBlock = takeoffTime = landingTime = onBlock =
             new Date(Date.UTC(year, month, day));
 
-          console.log("DATE: " + offBlock )
+          //console.log("DATE: " + offBlock )
           litem.plane = lform.registration
           litem.type = lform.type
           litem.pilot = lform.pilot
@@ -434,7 +436,7 @@ export default {
         
         setTimeFromForm(form, item){
           
-          console.log("SET: " + item)
+          //console.log("SET: " + item)
           item.setUTCHours(form.slice(0,2))
           item.setUTCMinutes(form.slice(3,5))
           

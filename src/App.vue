@@ -222,7 +222,7 @@ export default {
                 ).then(response =>
                 {   
                     this.allflights  = response.data.reverse()
-                    //console.log(this.allflights)
+                    console.log(this.allflights)
                 }).catch(function(error){
                     // eslint-disable-next-line
                     console.log('READ ERROR!' + error);
@@ -311,8 +311,8 @@ export default {
                         }
                     });
                 this.info = response.data
-                this.fetchNewFlights(this.info)
                 console.log(this.info)
+                this.fetchNewFlights(this.info)
             } catch (error){
                 console.log ( error )
             }

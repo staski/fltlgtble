@@ -239,63 +239,11 @@
     </b-form-row>
     
     </b-card>
-    <b-button v-b-toggle="'collapse-timers'" class="m-1">Timers</b-button>
-    <b-button v-b-toggle="'collapse-refuel'" class="m-1">Refuel</b-button>
-    <b-collapse id="collapse-refuel">
-    <b-card class="mt-3" bg-variant="light">
-        test
-    </b-card>
-    </b-collapse>
-    <b-collapse id="collapse-timers">
-    <b-card class="mt-3" bg-variant="light">
-    <b-form-row>
-    <b-form-group class="px-1" id="timer-vfr" label="VFR Time" label-for="timer-vfr">
-        <b-form-timepicker
-            id="timer-vfr"
-            v-model="form.vfrtime"
-            required
-            placeholder="Landing"
-        ></b-form-timepicker>
-    </b-form-group>
-
-    <b-form-group class="px-1" id="timer-ifr" label="IFR Time" label-for="timer-ifr">
-        <b-form-timepicker
-            id="timer-ifr"
-            v-model="form.landing"
-            required
-            placeholder="Landing"
-        ></b-form-timepicker>
-    </b-form-group>
-
-    <b-form-group class="px-1" id="timer-airborne" label="Airborne Time" label-for="timer-airborne">
-        <b-form-timepicker
-            id="timer-airborn"
-            v-model="form.landing"
-            required
-            placeholder="Landing"
-        ></b-form-timepicker>
-    </b-form-group>
-
-    <b-form-group class="px-1" id="timer-pic" label="PIC Time" label-for="timer-airborne">
-        <b-form-timepicker
-            id="timer-pic"
-            v-model="form.landing"
-            required
-            placeholder="Landing"
-        ></b-form-timepicker>
-    </b-form-group>
-
-    <b-form-group class="px-1" id="timer-dual" label="Dual Time" label-for="timer-dual">
-        <b-form-timepicker
-            id="timer-dual"
-            :value="form.landing"
-            required
-            placeholder="Landing"
-        ></b-form-timepicker>
-    </b-form-group>
-
-    </b-form-row>
-    </b-card>
+    
+    <b-button v-b-toggle="'collapse-stats'" class="m-1">Statistics</b-button>
+    
+    <b-collapse id="collapse-stats">
+      <flight-stats v-bind:stats="form.stats" v-if="form.stats"> </flight-stats>
     </b-collapse>
 
     </b-modal>
@@ -305,9 +253,14 @@
 <script>
 
 import FlUtils from '../flutils.js'
+import FlightStats from './FlightStats.vue';
+//Vue.component('flight-stats', FlightStats);
 
 export default {
     name: 'Flight-Log-Table',
+    components : {
+        'flight-stats' : FlightStats
+    },
     props: {
         debug : Number,
         flightSegments : Array,
@@ -393,6 +346,7 @@ export default {
             this.form.function = item.function
             this.form.vfrtime = FlUtils.showTime(item.landingTime - item.takeoffTime)
             this.form.stats = item.stats
+            console.log(this.form.stats)
             this.$refs['modal-edit-segment'].show()
         },
 

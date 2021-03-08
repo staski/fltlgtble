@@ -47,7 +47,7 @@
         <b-button size="sm" @click="showModal(data.item, data.index)" class="mr-2">
         Edit
         </b-button>
-        <b-button size="sm" @click="entryDelete(data.item)" class="mr-2">
+        <b-button size="sm" @click="entryDelete(data.item, data.index)" class="mr-2">
         Delete
         </b-button>
     </template>
@@ -397,8 +397,9 @@ export default {
           return item
         },
 
-        entryDelete(item){
-          this.$parent.entryDelete(item,0)
+        entryDelete(item, index)
+        {
+          this.$parent.entryDelete(item,index)
         },
         
         // some utility functions

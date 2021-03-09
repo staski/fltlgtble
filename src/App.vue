@@ -259,7 +259,7 @@ export default {
             });
         },
         
-        deleteEntry : function (data, index){
+        deleteEntry (data, index){
             let acturl = this.sdeleteurl;
             if (this.debug == 1){
                 acturl = acturl + '&debug=1'

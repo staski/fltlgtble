@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 <template>
 <div class="app">
 <div>
@@ -172,7 +173,9 @@ export default {
                 { label : " Pilot", field : "pilot" },
                 { label : "From", field : "departureAirport"},
                 { label : "To" , field : "landingAirport" },
-                { label : "Duration", field : "row" , dataFormat: this.showDuration }
+                { label : "Duration", field : "row" , dataFormat: this.showDuration },
+                { label : "Starttime" , field : "takeoffTime" },
+                { label : "Landingtime" , field : "landingTime" }
                 ],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,

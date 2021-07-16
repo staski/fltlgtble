@@ -7,7 +7,7 @@
  
         <b-list-group flush>
             <b-list-group-item > Total time: {{ stats.elapsedMinutes}} minutes</b-list-group-item>
-            <b-list-group-item > Block time: {{ stats.flyingMinutes + stats.taxiMinutes + stats.restMinutes }} minutes</b-list-group-item>
+            <b-list-group-item > Block time: {{ this.blockTime() }} minutes</b-list-group-item>
             <b-list-group-item > Taxi time: {{ stats.taxiMinutes + stats.restMinutes }} minutes 
                 (thereof {{ stats.restMinutes }} minutes at rest)
                 </b-list-group-item>
@@ -34,6 +34,9 @@ export default {
         stats : Object
     },
     methods : {
+            blockTime () {
+                return Number(this.stats.flyingMinutes) + Number(this.stats.taxiMinutes) + Number(this.stats.restMinutes)
+            },
             avgSpeed () {
                 return Math.round(3600 * this.stats.flightDistanceNM / (this.stats.flyingMinutes * 60))
             }

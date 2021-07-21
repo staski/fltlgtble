@@ -268,12 +268,13 @@ export default {
                 acturl = acturl + '&debug=1'
             }
             // console.log(acturl)
+            Vue.delete(this.allflights, index)
             axios.post( acturl, data, {
                 headers: {
                     'Content-Type': 'application/json',
                 }
             }).then(response => {
-                Vue.delete(this.allflights, index)
+                // Vue.delete(this.allflights, index)
             }).catch(function(){
                 // eslint-disable-next-line
                 console.log('FAILURE DELETE!' + error);

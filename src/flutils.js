@@ -120,4 +120,52 @@ function exportExcel(columns, data) {
     Sheets.writeFile(workBook, filename);
 }
 
-export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcel }
+function validateCharPilot(char){
+    if (char.match(/[A-Z0-9äüö \-\.]/i) == null) 
+    {
+        return false
+    }
+    else 
+    {
+        return true
+    }
+}
+
+function formatterPilot(value){
+    var newstring = "";
+
+    let l = Math.min(50, value.length)
+    for (let i = 0; i < l; i++){
+        if (this.validateCharPilot(value.charAt(i)) == true) {
+            newstring += value.charAt(i)
+        }
+    }
+    return newstring.trim()
+}
+
+function validateCharRegistration(char){
+    if (char.match(/[A-Z0-9\-.]/i) == null) 
+    {
+        return false
+    }
+    else 
+    {
+        return true
+    }
+}
+
+function formatterRegistration(value){
+    var newstring = "";
+
+    let l = Math.min(10, value.length)
+    for (let i = 0; i < l; i++){
+        if (this.validateCharRegistration(value.charAt(i)) == true) {
+            newstring += value.charAt(i)
+        }
+    }
+    return newstring.trim()
+}
+
+
+
+export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcel, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }

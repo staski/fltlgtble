@@ -155,7 +155,7 @@ export default {
 
 
             for(let i = 0; i < l; i++){
-               if (this.validateCharPilot(p.charAt(i)) == false) {
+               if (FlUtils.validateCharPilot(p.charAt(i)) == false) {
                    return false
                } 
             }
@@ -170,7 +170,7 @@ export default {
             }
 
             for(let i = 0; i < l; i++){
-               if (this.validateCharRegistration(p.charAt(i)) == false) {
+               if (FlUtils.validateCharRegistration(p.charAt(i)) == false) {
                    return false
                } 
             }
@@ -235,51 +235,12 @@ export default {
     },
     
     methods : {
-
-        validateCharPilot(char){
-            if (char.match(/[A-Z0-9äüö \-\.]/i) == null) 
-            {
-                return false
-            }
-            else 
-            {
-                return true
-            }
-        },
-
         formatterPilot(value){
-            var newstring = "";
-
-            let l = Math.min(50, value.length)
-            for (let i = 0; i < l; i++){
-                if (this.validateCharPilot(value.charAt(i)) == true) {
-                    newstring += value.charAt(i)
-                }
-            }
-            return newstring.trim()
-        },
-
-        validateCharRegistration(char){
-            if (char.match(/[A-Z0-9\-.]/i) == null) 
-            {
-                return false
-            }
-            else 
-            {
-                return true
-            }
+            return FlUtils.formatterPilot(value)
         },
 
         formatterRegistration(value){
-            var newstring = "";
-
-            let l = Math.min(10, value.length)
-            for (let i = 0; i < l; i++){
-                if (this.validateCharRegistration(value.charAt(i)) == true) {
-                    newstring += value.charAt(i)
-                }
-            }
-            return newstring.trim()
+            return FlUtils.formatterRegistration(value)
         },
 
         handleLogExport () {

@@ -73,21 +73,25 @@
     <b-form>
         <b-form-row>
             <b-form-group class="px-1" id="input-group-plane" label="Plane" label-for="input-plane">
-               <b-form-select
+               <b-form-input
                  id="input-plane"
                  v-model="form.registration"
-                 :options=planes
+                 :state="registrationState"
+                  lazy-formatter
+                 :formatter="formatterRegistration"
                  required
-               ></b-form-select>
+               ></b-form-input>
              </b-form-group>
 
             <b-form-group class="px-1" id="input-group-pilot" label="Pilot" label-for="input-pilot">
-               <b-form-select
+               <b-form-input
                  id="input-pilot"
                  v-model="form.pilot"
-                 :options=pilots
+                 :state="pilotState"
+                 lazy-formatter
+                 :formatter="formatterPilot"
                  required
-               ></b-form-select>
+               ></b-form-input>
              </b-form-group>
 
              <b-form-group class="px-1" id="input-group-date" label="Date" label-for="input-date">
@@ -269,6 +273,40 @@ export default {
         rules: Array,
         functions: Array,
         },
+
+    computed: {
+        pilotState() {
+            let p = this.form.pilot
+            let l = p.length
+            if (l <= 2 || l > 50) {
+                return false
+            }
+
+
+            for(let i = 0; i < l; i++){
+               if (FlUtils.validateCharPilot(p.charAt(i)) == false) {
+                   return false
+               } 
+            }
+            return true;
+        },
+
+        registrationState() {
+            let p = this.form.registration
+            let l = p.length
+            if (l <= 2 || l >= 10) {
+                return false
+            }
+
+            for(let i = 0; i < l; i++){
+               if (FlUtils.validateCharRegistration(p.charAt(i)) == false) {
+                   return false
+               } 
+            }
+            return true;
+        }
+    },
+
     data() {
       return {
         functionoptions : [
@@ -326,6 +364,14 @@ export default {
       }
     },
     methods : {
+        formatterPilot(value){
+            return FlUtils.formatterPilot(value)
+        },
+
+        formatterRegistration(value){
+            return FlUtils.formatterRegistration(value)
+        },
+
         showModal(item, index) {
             this.selectedItem=item
             this.index = index

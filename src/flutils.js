@@ -25,7 +25,10 @@ function  showTime (timer){
 
 // objects of type Date will converted to "Date"-cells automatically
 function spreadsheetTime(timer){
-    return new Date(timer*1000)
+    // hack offset for UTC output in Excel!
+    var date = new Date(timer * 1000)
+    var offset = (date.getHours() - date.getUTCHours()) * 3600 
+    return new Date((timer - offset)*1000)
 }
 
 // objects of type Number will converted to "Number"-cells automatically

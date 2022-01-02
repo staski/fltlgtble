@@ -28,20 +28,26 @@
     <b-form>
         <b-form-row>
             <b-form-group class="mx-1" id="input-group-pilot" label="Pilot" label-for="input-pilot">
-               <b-form-select
+               <b-form-input
                     v-model="favpilot"
-                    :options=pilots
                     id="input-pilot"
+                    placeholder="Enter Pilot Name"
+                    :state="pilotState"
+                    lazy-formatter
+                    :formatter="formatterPilot"
                     required
-                ></b-form-select>
+                ></b-form-input>
              </b-form-group>
-            <b-form-group class="mx-1" id="input-group-plane" label="Plane" label-for="input-plane">
-               <b-form-select
+            <b-form-group class="mx-1" id="input-group-plane" label="Registration" label-for="input-plane">
+               <b-form-input
                     v-model="favplane"
-                    :options=planes
                     id="input-plane"
+                    placeholder="Enter Registration"
+                    :state="registrationState"
+                    lazy-formatter
+                    :formatter="formatterRegistration"
                     required
-                ></b-form-select>
+                ></b-form-input>
              </b-form-group>
             <b-form-group class="mx-1" id="input-group-rules" label="Flight Rules" label-for="input-rules">
                <b-form-select
@@ -139,6 +145,41 @@ export default {
 
     },
     
+    computed: {
+        pilotState() {
+            let p = this.favpilot
+            let l = p.length
+            if (l <= 2 || l > 50) {
+                return false
+            }
+
+
+            for(let i = 0; i < l; i++){
+               if (this.validateCharPilot(p.charAt(i)) == false) {
+                   return false
+               } 
+            }
+            return true;
+        },
+
+        registrationState() {
+            let p = this.favplane
+            let l = p.length
+            if (l <= 2 || l >= 10) {
+                return false
+            }
+
+            for(let i = 0; i < l; i++){
+               if (this.validateCharRegistration(p.charAt(i)) == false) {
+                   return false
+               } 
+            }
+            return true;
+        }
+    },
+
+
+
     data () {
         return {
             uploadVisible : false,
@@ -194,6 +235,52 @@ export default {
     },
     
     methods : {
+
+        validateCharPilot(char){
+            if (char.match(/[A-Z0-9äüö \-\.]/i) == null) 
+            {
+                return false
+            }
+            else 
+            {
+                return true
+            }
+        },
+
+        formatterPilot(value){
+            var newstring = "";
+
+            let l = Math.min(50, value.length)
+            for (let i = 0; i < l; i++){
+                if (this.validateCharPilot(value.charAt(i)) == true) {
+                    newstring += value.charAt(i)
+                }
+            }
+            return newstring.trim()
+        },
+
+        validateCharRegistration(char){
+            if (char.match(/[A-Z0-9\-.]/i) == null) 
+            {
+                return false
+            }
+            else 
+            {
+                return true
+            }
+        },
+
+        formatterRegistration(value){
+            var newstring = "";
+
+            let l = Math.min(10, value.length)
+            for (let i = 0; i < l; i++){
+                if (this.validateCharRegistration(value.charAt(i)) == true) {
+                    newstring += value.charAt(i)
+                }
+            }
+            return newstring.trim()
+        },
 
         handleLogExport () {
             FlUtils.exportExcel (this.exportcolumns, this.allflights)

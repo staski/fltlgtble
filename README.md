@@ -1,24 +1,3 @@
 # flight-log
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+create flight log entries from the gpx-tracks of your flight. Demo can be seen at https://flight-log.venus-flytrap.de. Please note that entries created by  this demo will be deleted automatically after one hour. You may export your fligth log to Excel, though.

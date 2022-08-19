@@ -39,7 +39,7 @@ function spreadsheetNumber(num){
 let filename = 'FlightLog.xlsx';
 let sheetname = 'FlightLog';
 
-function exportExcel(columns, data) {
+function exportExcelLog(columns, data) {
     let dataTableArray = [];
     let dataTableColumnsArray = [];
     let columnFormat = [];
@@ -82,7 +82,10 @@ function exportExcel(columns, data) {
                 fieldValue = value
             } else
             {
-                fieldValue = value[val.field]
+                if (Reflect.has(value, val.field)){
+                    fieldValue = value[val.field]
+                } else
+                    fieldValue = val.field
             }
 
             // determine whether the field value or a function therof goes into the cell's content
@@ -168,4 +171,4 @@ function formatterRegistration(value){
 
 
 
-export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcel, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }
+export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }

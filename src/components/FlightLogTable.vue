@@ -31,7 +31,7 @@
     </template>
 
     <template v-slot:cell(duration)="data">
-      {{ showDuration(data.item) }}
+      {{ showAirborneTime(data.item) }}
     </template>
 
     <template v-slot:cell(landingCount)="data">
@@ -202,7 +202,7 @@
                 v-model="form.landingcount"
                 required
                 placeholder="Landings Day"
-                min="1" max="20"
+                min="0" max="30"
             ></b-form-input>
         </b-form-group>
         
@@ -213,7 +213,7 @@
                 id="input-landings-night"
                 required
                 placeholder="0"
-                min="0" max="20"
+                min="0" max="30"
             ></b-form-input>
         </b-form-group>
 
@@ -231,12 +231,13 @@
         ></b-form-select>
     </b-form-group>
 
-    <b-form-group class="px-3" id="timer-flight" label="Flight Time" label-for="timer-flight">
+    <b-form-group class="px-3" id="timer-flight" label="Total Time of Flight" label-for="timer-flight">
         <b-form-timepicker
             id="timer-flight"
-            v-model="form.vfrtime"
+            v-model="form.totaltime"
             required
             placeholder="Flight Time"
+            disabled
         ></b-form-timepicker>
     </b-form-group>
 
@@ -245,9 +246,60 @@
     </b-card>
     
     <b-button v-b-toggle="'collapse-stats'" class="m-1">Statistics</b-button>
+    <b-button v-b-toggle="'collapse-timers'" class="m-1">Timers</b-button>
     
     <b-collapse id="collapse-stats">
       <flight-stats v-bind:stats="form.stats" v-if="form.stats"> </flight-stats>
+    </b-collapse>
+
+    <b-collapse id="collapse-timers">
+    
+    <b-form-row class="my-3">
+    <b-form-group class="px-3" id="timer-night" label="Night Time" label-for="timer-night">
+        <b-form-timepicker
+            id="timer-night"
+            v-model="form.nighttime"
+            required
+            placeholder="Night Time"
+        ></b-form-timepicker>
+    </b-form-group>
+    <b-form-group class="px-3" id="timer-ifr" label="IFR Time" label-for="timer-flight">
+        <b-form-timepicker
+            id="timer-ifr"
+            v-model="form.ifrtime"
+            required
+            placeholder="IFR Time"
+            @input="ifrTimeInput"
+        ></b-form-timepicker>
+    </b-form-group>
+    <b-form-group class="px-3" id="timer-pic" label="PIC Time" label-for="timer-pic">
+        <b-form-timepicker
+            id="timer-pic"
+            v-model="form.pictime"
+            required
+            placeholder="PIC Time"
+            disabled
+        ></b-form-timepicker>
+    </b-form-group>
+    <b-form-group class="px-3" id="timer-dual" label="DUAL Time" label-for="timer-dual">
+        <b-form-timepicker
+            id="timer-dual"
+            v-model="form.dualtime"
+            required
+            placeholder="DUAL Time"
+            disabled
+        ></b-form-timepicker>
+    </b-form-group>
+    <b-form-group class="px-3" id="timer-fi" label="FI Time" label-for="timer-fi">
+        <b-form-timepicker
+            id="timer-fi"
+            v-model="form.fitime"
+            required
+            placeholder="DUAL Time"
+            disabled
+        ></b-form-timepicker>
+    </b-form-group>
+    </b-form-row>
     </b-collapse>
 
     </b-modal>
@@ -311,7 +363,8 @@ export default {
       return {
         functionoptions : [
                 { text: 'PIC', value: 'PIC'},
-                { text: 'DUAL', value: 'DUAL' }
+                { text: 'DUAL', value: 'DUAL' },
+                { text: 'FI', value: 'FI' },
         ],
         rulesoptions : [
                 { text: 'VFR', value: 'VFR'},
@@ -338,11 +391,16 @@ export default {
             landingcount : '',
             rules : '',
             function : '',
-            vfrtime : 0,
-            ifrtime : 0,
+            totaltime : 0,
+            
+            ifrtime : '',
+            ifrtime_s : 0,
+            
             airbornetime : 0,
             pictime : 0,
             dualtime : 0,
+            fitime : 0,
+            nighttime : 0,
             stats : null
         },
         show : true,
@@ -356,7 +414,7 @@ export default {
           { key: 'landingAirport', label: 'To' },
           { key: 'takeoffTime', label: 'Takeoff' },
           { key: 'landingTime', label: 'Landing' },
-            'duration',
+          { key: 'duration', label: 'Airborne Time'},
             'landingCount',
           { key: 'props', label : ''},
           { key: 'edit', label: ''}
@@ -387,10 +445,23 @@ export default {
             this.form.landing = FlUtils.showTime(item.landingTime)
             this.form.onblock = FlUtils.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
-            this.form.duration = this.showDuration(item)
+            this.form.duration = this.showAirborneTime(item)
             this.form.rules = item.rules
             this.form.function = item.function
-            this.form.vfrtime = FlUtils.showTime(item.landingTime - item.takeoffTime)
+            this.form.totaltime = FlUtils.showTime(item.onBlock - item.offBlock)
+            
+            this.form.nighttime = FlUtils.showTime(0)
+            this.form.ifrtime_s = item.ifrtime_s ? item.ifrtime_s :
+                item.rules == "IFR" ? item.onBlock - item.offBlock : 0
+            this.form.ifrtime = FlUtils.showTime(this.form.ifrtime_s)
+            
+            this.form.pictime = item.function == "PIC" ?
+                FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
+            this.form.dualtime = item.function == "DUAL" ?
+                FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
+            this.form.fitime = item.function == "FI" ?
+                FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
+            
             this.form.stats = item.stats
             console.log(this.form.stats)
             this.$refs['modal-edit-segment'].show()
@@ -428,10 +499,20 @@ export default {
           litem.landingCount = lform.landingcount
           litem.rules = lform.rules
           litem.function = lform.function
-
+          litem.ifrtime_s = lform.ifrtime_s
+          litem.nighttime = lform.nighttime
           this.$parent.entrySave (litem, this.index)
 
           //alert(JSON.stringify(this.selectedItem))
+        },
+        
+        getSecondsfromForm(form){
+                var secs = parseInt(form.slice(0,2))*3600 + parseInt(form.slice(3,5)) * 60
+                return secs
+        },
+        
+        ifrTimeInput(data) {
+            this.form.ifrtime_s = this.getSecondsfromForm(data)
         },
         
         setTimeFromForm(form, item){
@@ -461,10 +542,17 @@ export default {
                 return timer
         },
 
-        showDuration : function (line) {
+        showAirborneTime : function (line) {
             var duration = line.landingTime - line.takeoffTime
             return FlUtils.showTime(duration)
+        },
+
+        showTotalFlightTime : function (line) {
+            var duration = line.onBlock - line.offBlock
+            return FlUtils.showTime(duration)
         }
+
+
     }
   }
 </script>

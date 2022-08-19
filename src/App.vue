@@ -10,7 +10,9 @@
 
     <b-collapse id="nav-collapse" is-nav>
     <b-navbar-nav class="ml-auto">
-    <b-btn @click="handleLogExport()" class="mx-1"><b-icon icon="file-spreadsheet" aria-hidden="true"></b-icon> Export
+    <b-btn @click="handleExportAircraftLog()" class="mx-1"><b-icon icon="file-spreadsheet" aria-hidden="true"></b-icon> Export Aircraft Log
+    </b-btn>
+    <b-btn @click="handleExportPilotLog()" class="mx-1"><b-icon icon="file-spreadsheet" aria-hidden="true"></b-icon> Export Pilot Log
     </b-btn>
     <b-btn @click="handleLogRead()" class="mx-1"><b-icon icon="arrow-repeat" aria-hidden="true"></b-icon> Refresh</b-btn>
     <b-btn class="mx-1" v-if="false"><b-icon icon="gear-fill" aria-hidden="true"></b-icon> Settings</b-btn>
@@ -208,7 +210,7 @@ export default {
                 { text: "DUAL", value: 'DUAL'}
                 ],
             allflights : [],
-            exportcolumns :    [
+            aircraftlogcolumns :    [
                 { label : "Date", field : "takeoffTime" , dataCalc: FlUtils.spreadsheetTime, dataFormat: "dd\.mm\.yy" },
                 { label : "Registration", field : "plane" },
                 { label : "Pilot", field : "pilot" },
@@ -222,6 +224,27 @@ export default {
                 { label : "Operational Condition" , field : "rules"},
                 { label : "Pilot Function" , field : "function"},
                 { label : "Flight Distance" , sub : "stats", field : "flightDistanceNM", dataCalc: FlUtils.spreadsheetNumber}
+                ],
+            pilotlogcolumns :    [
+                { label : "Date", field : "takeoffTime" , dataCalc: FlUtils.spreadsheetTime, dataFormat: "dd\.mm\.yy" },
+                { label : "Aircraft Type", field : "" },
+                { label : "Registration", field : "plane" },
+                { label : "Type (SEP/MEP)", field : "SEP" },
+                { label : "Flight from", field : "departureAirport"},
+                { label : "Flight to" , field : "landingAirport" },
+                { label : "Time of Departure", field : "offBlock", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm" },
+                { label : "Time of Arrival" , field : "onBlock", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"  },
+                { label : "Total Time of Flight" , field : "row", dataCalc: this.getFlightTotalTime, dataFormat: "hh:mm"  },
+                { label : "Number of Landings Day" , field : "landingCount"},
+                { label : "Number of Landings Night" , field : "landingCount"},
+                { label : "Pilot", field : "pilot" },
+                { label : "Operational Condition Time Night" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
+                { label : "Operational Condition Time IFR" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
+                { label : "Pilot Function Time PIC" , field : "row", dataCalc: this.getPICTime, dataFormat: "hh:mm"},
+                { label : "Pilot Function Time Dual" , field : "row", dataCalc: this.getDualTime, dataFormat: "hh:mm"},
+                { label : "Pilot Function Time FI" , field : "row", dataCalc: this.getFITime, dataFormat: "hh:mm"},
+                { label : "Remarks" , field : ""},
+                { label : "Endorsments" , field : ""}
                 ],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,
@@ -243,19 +266,18 @@ export default {
             return FlUtils.formatterRegistration(value)
         },
 
-        handleLogExport () {
-            FlUtils.exportExcel (this.exportcolumns, this.allflights)
+        handleExportAircraftLog () {
+            FlUtils.exportExcelLog (this.aircraftlogcolumns, this.allflights)
+        },
+        
+        handleExportPilotLog() {
+            FlUtils.exportExcelLog (this.pilotlogcolumns, this.allflights)
         },
         
         handleLogRead() {
             this.readFlightLog()
         },
         
-        showDuration : function (line) {
-            var duration = line.landingTime - line.takeoffTime
-            return FlUtils.showTime(duration)
-        },
-
         entrySave : function ( line, index ){
             localStorage.favpilot = line.pilot;
             localStorage.favplane = line.plane;
@@ -352,6 +374,11 @@ export default {
             if (this.debug == 1){
                 acturl = acturl + '&debug=1'
             }
+            
+            localStorage.favpilot = this.favpilot;
+            localStorage.favplane = this.favplane;
+            localStorage.favrules = this.favrules;
+            localStorage.favfunction = this.favfunction;
 
             formData.append('file', file);
             formData.append('pilot', this.favpilot)
@@ -406,6 +433,23 @@ export default {
                     Vue.set(a, item.idx, item)
                 }
             });
+        },
+        
+        getFlightTotalTime ( row ) {
+            return FlUtils.spreadsheetTime(row["onBlock"] - row["offBlock"])
+        },
+        
+        getPICTime ( row ) {
+            var t = row.function === "PIC" ? row["onBlock"] - row["offBlock"] : 0
+            return FlUtils.spreadsheetTime(t)
+        },
+        getDualTime ( row ) {
+            var t = row.function === "Dual" ? row["onBlock"] - row["offBlock"] : 0
+            return FlUtils.spreadsheetTime(t)
+        },
+        getFITime ( row ) {
+            var t = row.function === "FI" ? row["onBlock"] - row["offBlock"] : 0
+            return FlUtils.spreadsheetTime(t)
         }
     }
 }

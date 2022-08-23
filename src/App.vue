@@ -236,7 +236,7 @@ export default {
                 { label : "Time of Arrival" , field : "onBlock", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"  },
                 { label : "Total Time of Flight" , field : "row", dataCalc: this.getFlightTotalTime, dataFormat: "hh:mm"  },
                 { label : "Number of Landings Day" , field : "landingCount"},
-                { label : "Number of Landings Night" , field : "landingCount"},
+                { label : "Number of Landings Night" , field : ""},
                 { label : "Pilot", field : "pilot" },
                 { label : "Operational Condition Time Night" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
                 { label : "Operational Condition Time IFR" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
@@ -244,7 +244,8 @@ export default {
                 { label : "Pilot Function Time Dual" , field : "row", dataCalc: this.getDualTime, dataFormat: "hh:mm"},
                 { label : "Pilot Function Time FI" , field : "row", dataCalc: this.getFITime, dataFormat: "hh:mm"},
                 { label : "Remarks" , field : ""},
-                { label : "Endorsments" , field : ""}
+                { label : "Endorsments" , field : ""},
+                { label : "Flight Distance" , sub : "stats", field : "flightDistanceNM", dataCalc: FlUtils.spreadsheetNumber}
                 ],
             debug : process.env.VUE_APP_DEBUG_MODE == 1 ? 1 : 0,
             base_url : process.env.VUE_APP_BASE_URL,

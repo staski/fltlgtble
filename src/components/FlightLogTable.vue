@@ -35,7 +35,7 @@
     </template>
 
     <template v-slot:cell(landingCount)="data">
-      {{ data.value }}
+      {{ showTotalLandings(data.item) }}
     </template>
 
     <template v-slot:cell(props)="data">
@@ -211,6 +211,7 @@
             <b-form-input
                 type="number"
                 id="input-landings-night"
+                v-model="form.nightlandings"
                 required
                 placeholder="0"
                 min="0" max="30"
@@ -240,9 +241,8 @@
             disabled
         ></b-form-timepicker>
     </b-form-group>
-
-    </b-form-row>
     
+    </b-form-row>
     </b-card>
     
     <b-button v-b-toggle="'collapse-stats'" class="m-1">Statistics</b-button>
@@ -389,6 +389,7 @@ export default {
             hobbsstart : '0.00',
             hobbsend : '0.00',
             landingcount : '',
+            nightlandings : '',
             rules : '',
             function : '',
             totaltime : 0,
@@ -445,12 +446,13 @@ export default {
             this.form.landing = FlUtils.showTime(item.landingTime)
             this.form.onblock = FlUtils.showTime(item.onBlock)
             this.form.landingcount = item.landingCount
+            this.form.nightlandings = item.nightLandings
             this.form.duration = this.showAirborneTime(item)
             this.form.rules = item.rules
             this.form.function = item.function
             this.form.totaltime = FlUtils.showTime(item.onBlock - item.offBlock)
             
-            this.form.nighttime = FlUtils.showTime(0)
+            this.form.nighttime = FlUtils.showTime(item.nightTime)
             this.form.ifrtime_s = item.ifrtime_s ? item.ifrtime_s :
                 item.rules == "IFR" ? item.onBlock - item.offBlock : 0
             this.form.ifrtime = FlUtils.showTime(this.form.ifrtime_s)
@@ -497,6 +499,7 @@ export default {
 
 
           litem.landingCount = lform.landingcount
+          litem.nightLandings = lform.nightlandings
           litem.rules = lform.rules
           litem.function = lform.function
           litem.ifrtime_s = lform.ifrtime_s
@@ -545,6 +548,10 @@ export default {
         showAirborneTime : function (line) {
             var duration = line.landingTime - line.takeoffTime
             return FlUtils.showTime(duration)
+        },
+
+        showTotalLandings : function (line) {
+            return Number(line.landingCount) + Number(line.nightLandings)
         },
 
         showTotalFlightTime : function (line) {

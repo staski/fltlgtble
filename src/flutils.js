@@ -169,6 +169,25 @@ function formatterRegistration(value){
     return newstring.trim()
 }
 
+function eot() {
+    var lat = 49.3173;
+    var lon = 8.4412;
+    
+    var t1 = new Date(2022,1,1).getTime();
+    var now = new Date(Date.now())
+    var t2 = now.getTime();
+    
+    var days = (t2 - t1) / (1000 * 24 * 3600);
+    var w = 36000.0 / 36524.0
+    
+    var A = (days + 9) * w
+    var B = A + 1.914 * Math.sin((days - 3) * w * Math.PI / 180.0)
+    var C = A - (180.0 / Math.PI) * Math.atan(Math.tan(B) / Math.cos(23.44 * (Math.PI / 180.0)))
+    C = C / 180
+    var NC = Math.floor(C + 0.5)
+    
+    return "EOT for " + now.toString() + " is " + 12 * (C - NC);
+}
 
 
 export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }

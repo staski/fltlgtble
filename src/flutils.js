@@ -23,12 +23,23 @@ function  showTime (timer){
     return hours + ":" + minutes
 }
 
+//return the time according to timer seconds since epoch as JS object (corrected to account
+// for UTC output in Excel
 // objects of type Date will converted to "Date"-cells automatically
 function spreadsheetTime(timer){
     // hack offset for UTC output in Excel!
     var date = new Date(timer * 1000)
     var offset = (date.getHours() - date.getUTCHours()) * 3600 
     return new Date((timer - offset)*1000)
+}
+
+//return the time according to timer seconds since epoch as XLS reporesentation number: days sine
+// 1.1.1900 as floating number  (corrected to account
+function spreadsheetTimeXLS(timer){
+    // hack offset for UTC output in Excel!
+    let date = new Date(timer * 1000)
+    let converted = 25569.0 + ((date.getTime() - (date.getTimezoneOffset() * 60 * 1000)) / (1000 * 60 * 60 * 24));
+    return converted;
 }
 
 // objects of type Number will converted to "Number"-cells automatically
@@ -190,4 +201,4 @@ function eot() {
 }
 
 
-export default { showDate, showTime, spreadsheetTime, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }
+export default { showDate, showTime, spreadsheetTime, spreadsheetTimeXLS, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }

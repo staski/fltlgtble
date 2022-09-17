@@ -234,7 +234,7 @@ export default {
                 { label : "Flight to" , field : "landingAirport" },
                 { label : "Time of Departure", field : "offBlock", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm" },
                 { label : "Time of Arrival" , field : "onBlock", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"  },
-                { label : "Total Time of Flight" , field : "row", dataCalc: this.getFlightTotalTime, dataFormat: "hh:mm"  },
+                { label : "Total Time of Flight" , field : "row", dataCalc: this.getFlightTotalTime, dataFormat: "hh:mm" },
                 { label : "Number of Landings Day" , field : "landingCount"},
                 { label : "Number of Landings Night" , field : "nightLandings"},
                 { label : "Pilot", field : "pilot" },
@@ -437,16 +437,14 @@ export default {
         },
         
         getFlightTotalTime ( row ) {
-            return FlUtils.spreadsheetTime(row["onBlock"] - row["offBlock"])
+            return FlUtils.spreadsheetTimeXLS(row["onBlock"]) - FlUtils.spreadsheetTimeXLS(row["offBlock"])
         },
         
         getPICTime ( row ) {
-            var t = row.function === "PIC" ? row["onBlock"] - row["offBlock"] : 0
-            return FlUtils.spreadsheetTime(t)
+            return row.function === "PIC" ? this.getFlightTotalTime ( row ) : 0;
         },
         getDualTime ( row ) {
-            var t = row.function === "Dual" ? row["onBlock"] - row["offBlock"] : 0
-            return FlUtils.spreadsheetTime(t)
+            return row.function === "Dual" ? this.getFlightTotalTime ( row ) : 0;
         },
         getFITime ( row ) {
             var t = row.function === "FI" ? row["onBlock"] - row["offBlock"] : 0

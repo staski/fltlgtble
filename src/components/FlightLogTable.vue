@@ -222,6 +222,7 @@
         <b-form-radio-group
             v-model="form.rules"
             :options=rules
+            @change="changeRules"
         ></b-form-radio-group>
     </b-form-group>
     
@@ -423,6 +424,21 @@ export default {
       }
     },
     methods : {
+        changeRules ( rules ){
+            if (rules === "IFR"){
+                var offBlock = new Date(this.form.date), onBlock = new Date(this.form.date)
+                offBlock = this.setTimeFromForm(this.form.offblock, offBlock).getTime() / 1000
+                onBlock = this.setTimeFromForm(this.form.onblock, onBlock).getTime() / 1000
+
+                this.form.ifrtime_s = onBlock - offBlock
+                this.form.ifrtime = FlUtils.showTime ( this.form.ifrtime_s )
+            } else {
+                console.log( rules )
+                this.form.ifrtime_s = 0
+                this.form.ifrtime = FlUtils.showTime ( this.form.ifrtime_s )
+            }
+        },
+        
         formatterPilot(value){
             return FlUtils.formatterPilot(value)
         },
@@ -457,11 +473,11 @@ export default {
                 item.rules == "IFR" ? item.onBlock - item.offBlock : 0
             this.form.ifrtime = FlUtils.showTime(this.form.ifrtime_s)
             
-            this.form.pictime = item.function == "PIC" ?
+            this.form.pictime = item.function === "PIC" ?
                 FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
-            this.form.dualtime = item.function == "DUAL" ?
+            this.form.dualtime = item.function === "DUAL" ?
                 FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
-            this.form.fitime = item.function == "FI" ?
+            this.form.fitime = item.function === "FI" ?
                 FlUtils.showTime(item.onBlock - item.offBlock) : FlUtils.showTime(0)
             
             this.form.stats = item.stats

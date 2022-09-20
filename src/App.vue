@@ -207,7 +207,8 @@ export default {
                 ],
             functions : [
                 { text: "PIC", value: 'PIC'},
-                { text: "DUAL", value: 'DUAL'}
+                { text: "DUAL", value: 'DUAL'},
+                { text: "FI", value: 'FI'}
                 ],
             allflights : [],
             aircraftlogcolumns :    [
@@ -444,7 +445,7 @@ export default {
             return row.function === "PIC" ? this.getFlightTotalTime ( row ) : 0;
         },
         getDualTime ( row ) {
-            return row.function === "Dual" ? this.getFlightTotalTime ( row ) : 0;
+            return row.function === "DUAL" ? this.getFlightTotalTime ( row ) : 0;
         },
         getFITime ( row ) {
             var t = row.function === "FI" ? row["onBlock"] - row["offBlock"] : 0

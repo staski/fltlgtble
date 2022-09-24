@@ -239,8 +239,8 @@ export default {
                 { label : "Number of Landings Day" , field : "landingCount"},
                 { label : "Number of Landings Night" , field : "nightLandings"},
                 { label : "Pilot", field : "pilot" },
-                { label : "Operational Condition Time Night" , field : "nightTime", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
-                { label : "Operational Condition Time IFR" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetTime, dataFormat: "hh:mm"},
+                { label : "Operational Condition Time Night" , field : "nightTime", dataCalc: FlUtils.spreadsheetDuration, dataFormat: "hh:mm"},
+                { label : "Operational Condition Time IFR" , field : "ifrtime_s", dataCalc: FlUtils.spreadsheetDuration, dataFormat: "hh:mm"},
                 { label : "Pilot Function Time PIC" , field : "row", dataCalc: this.getPICTime, dataFormat: "hh:mm"},
                 { label : "Pilot Function Time Dual" , field : "row", dataCalc: this.getDualTime, dataFormat: "hh:mm"},
                 { label : "Pilot Function Time FI" , field : "row", dataCalc: this.getFITime, dataFormat: "hh:mm"},
@@ -448,8 +448,7 @@ export default {
             return row.function === "DUAL" ? this.getFlightTotalTime ( row ) : 0;
         },
         getFITime ( row ) {
-            var t = row.function === "FI" ? row["onBlock"] - row["offBlock"] : 0
-            return FlUtils.spreadsheetTime(t)
+            return  row.function === "FI" ? this.getFlightTotalTime ( row ) : 0
         }
     }
 }

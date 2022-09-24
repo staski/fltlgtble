@@ -42,6 +42,10 @@ function spreadsheetTimeXLS(timer){
     return converted;
 }
 
+function spreadsheetDuration ( timer ){
+    return timer /( 3600 * 24 )
+}
+
 // objects of type Number will converted to "Number"-cells automatically
 function spreadsheetNumber(num){
     return Number(num)
@@ -201,4 +205,4 @@ function eot() {
 }
 
 
-export default { showDate, showTime, spreadsheetTime, spreadsheetTimeXLS, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }
+export default { showDate, showTime, spreadsheetTime, spreadsheetTimeXLS, spreadsheetDuration, spreadsheetNumber, exportExcelLog, validateCharPilot, validateCharRegistration, formatterPilot, formatterRegistration }
